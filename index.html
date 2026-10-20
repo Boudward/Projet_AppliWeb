@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Travaux & Maintenance - Test</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 20px auto; padding: 0 15px; }
+    input, textarea, select, button { display: block; width: 100%; margin: 6px 0; padding: 8px; box-sizing: border-box; }
+    button { background: #2563eb; color: white; border: none; cursor: pointer; border-radius: 4px; }
+    .carte { border: 1px solid #ddd; border-radius: 6px; padding: 10px; margin: 10px 0; }
+    .haute { border-left: 5px solid #dc2626; }
+    .normale { border-left: 5px solid #2563eb; }
+    .basse { border-left: 5px solid #16a34a; }
+    .erreur { color: #dc2626; }
+    .cache { display: none; }
+  </style>
+</head>
+<body>
+  <h1>Demandes d'intervention</h1>
+
+  <!-- Connexion -->
+  <div id="vue-connexion">
+    <h2>Connexion</h2>
+    <input id="email" type="email" placeholder="Email">
+    <input id="mdp" type="password" placeholder="Mot de passe">
+    <button onclick="connexion()">Se connecter</button>
+    <p id="msg-connexion" class="erreur"></p>
+  </div>
+
+  <!-- Application -->
+  <div id="vue-app" class="cache">
+    <button onclick="deconnexion()" style="width:auto">Se déconnecter</button>
+
+    <h2>Nouvelle demande</h2>
+    <input id="titre" placeholder="Titre (ex : fuite robinet)">
+    <textarea id="description" placeholder="Description"></textarea>
+    <input id="lieu" placeholder="Lieu (ex : Bâtiment A, salle 12)">
+    <select id="priorite">
+      <option value="basse">Priorité basse</option>
+      <option value="normale" selected>Priorité normale</option>
+      <option value="haute">Priorité haute</option>
+    </select>
+    <button onclick="creerDemande()">Créer la demande</button>
+    <p id="msg-app" class="erreur"></p>
+
+    <h2>Liste des demandes</h2>
+    <div id="liste"></div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+    // >>> À REMPLACER par vos valeurs <<<
+    const SUPABASE_URL = 'https://VOTRE-PROJET.supabase.co';
+    const SUPABASE_KEY = 'VOTRE-CLE-PUBLIQUE';
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function majVue() {
+      const { data: { session } } = await supabase.auth.getSession();
+      document.getElementById('vue-connexion').classList.toggle('cache', !!session);
+      document.getElementById('vue-app').classList.toggle('cache', !session);
+      if (session) chargerListe();
+    }
+
+    window.connexion = async () => {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: document.getElementById('email').value,
+        password: document.getElementById('mdp').value
+      });
+      document.getElementById('msg-connexion').textContent = error ? error.message : '';
+      majVue();
+    };
+
+    window.deconnexion = async () => {
+      await supabase.auth.signOut();
+      majVue();
+    };
+
+    window.creerDemande = async () => {
+      const titre = document.getElementById('titre').value.trim();
+      if (!titre) { document.getElementById('msg-app').textContent = 'Le titre est obligatoire.'; return; }
+      const { error } = await supabase.from('interventions').insert({
+        titre,
+        description: document.getElementById('description').value,
+        lieu: document.getElementById('lieu').value,
+        priorite: document.getElementById('priorite').value
+      });
+      document.getElementById('msg-app').textContent = error ? error.message : '';
+      if (!error) {
+        document.getElementById('titre').value = '';
+        document.getElementById('description').value = '';
+        document.getElementById('lieu').value = '';
+        chargerListe();
+      }
+    };
+
+    window.changerStatut = async (id, statut) => {
+      await supabase.from('interventions').update({ statut }).eq('id', id);
+      chargerListe();
+    };
+
+    async function chargerListe() {
+      const { data, error } = await supabase
+        .from('interventions').select('*').order('created_at', { ascending: false });
+      const zone = document.getElementById('liste');
+      if (error) { zone.textContent = error.message; return; }
+      zone.innerHTML = data.map(i => `
+        <div class="carte ${i.priorite}">
+          <strong>${esc(i.titre)}</strong> (${i.priorite})<br>
+          ${esc(i.lieu || '')} <br>
+          <small>${esc(i.description || '')}</small><br>
+          <select onchange="changerStatut(${i.id}, this.value)">
+            <option value="a_traiter" ${i.statut==='a_traiter'?'selected':''}>À traiter</option>
+            <option value="en_cours" ${i.statut==='en_cours'?'selected':''}>En cours</option>
+            <option value="termine" ${i.statut==='termine'?'selected':''}>Terminé</option>
+          </select>
+        </div>`).join('') || '<p>Aucune demande.</p>';
+    }
+
+    // Protection contre l'injection de code dans l'affichage
+    function esc(t) {
+      return String(t).replace(/[&<>"']/g, c => ({'&':'&','<':'<','>':'>','"':'"',"'":'''}[c]));
+    }
+
+    // Mise à jour en temps réel entre utilisateurs (voir note ci-dessous)
+    supabase.channel('maj').on('postgres_changes',
+      { event: '*', schema: 'public', table: 'interventions' }, chargerListe).subscribe();
+
+    majVue();
+  </script>
+</body>
+</html>
