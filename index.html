@@ -22,8 +22,8 @@
   <!-- Connexion -->
   <div id="vue-connexion">
     <h2>Connexion</h2>
-    <input id="email" type="email" placeholder="edouard.fraisse@montpellier.fr">
-    <input id="mdp" type="password" placeholder="Test_supabase">
+    <input id="email" type="email" placeholder="email">
+    <input id="mdp" type="password" placeholder="mot de passe">
     <button onclick="connexion()">Se connecter</button>
     <p id="msg-connexion" class="erreur"></p>
   </div>
@@ -52,8 +52,8 @@
     import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
     // >>> À REMPLACER par vos valeurs <<<
-    const SUPABASE_URL = 'https://VOTRE-PROJET.supabase.co';
-    const SUPABASE_KEY = 'VOTRE-CLE-PUBLIQUE';
+    const SUPABASE_URL = 'https://iflehvsemyyyofkwpezv.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_TupRcFtwtofGhLlz8hwVxg_O8xAQzTx';
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
