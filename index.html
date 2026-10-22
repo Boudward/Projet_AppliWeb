@@ -68,8 +68,8 @@
   
 <script>
   // ---------- Version du fichier (à modifier à chaque mise à jour) ----------
-  const VERSION = '1.0.0';
-  const DATE_MAJ = '22/10/2026 19:32';
+  const VERSION = '1.0.1';
+  const DATE_MAJ = '22/10/2026 19:44';
   document.getElementById('version').textContent = 'Version ' + VERSION + ' - mise à jour du ' + DATE_MAJ;
   console.log('Application v' + VERSION + ' (' + DATE_MAJ + ')');
   // À ADAPTER : vos identifiants Supabase
@@ -84,18 +84,6 @@
     a_affecter: 'À affecter', a_traiter: 'À traiter', en_cours: 'En cours',
     termine: 'Terminé', refusee: 'Refusée', archivee: 'Archivée'
   };
-
-  function esc(s) {
-    return String(s ?? '').replace(/[&<>"']/g, function (c) {
-      return {
-        '&': '&',
-        '<': '<',
-        '>': '>',
-        '"': '"',
-        "'": '''
-      }[c];
-    });
-  }
 
   // ---------- Connexion ----------
   async function connexion() {
