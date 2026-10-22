@@ -6,7 +6,7 @@
   <title>Travaux et maintenance</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    body { font-family: Arial, sans-serif; max-width: 900px; margin: 20px auto; padding: 0 10px; }
+    body { font-family: Arial, sans-serif; max-width: 950px; margin: 20px auto; padding: 0 10px; }
     input, select, textarea, button { display: block; margin: 6px 0; padding: 8px; width: 100%; box-sizing: border-box; }
     button { cursor: pointer; width: auto; }
     table { width: 100%; border-collapse: collapse; margin-top: 15px; }
@@ -14,6 +14,19 @@
     tbody tr.ligne { cursor: pointer; }
     tbody tr.ligne:hover { background: #f0f6ff; }
     .erreur { color: red; }
+    .barre { display: flex; justify-content: space-between; align-items: center; }
+    .barre button { margin: 0; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px; background: #e6e6e6; }
+    .badge.a_traiter { background: #fff1c2; }
+    .badge.en_cours { background: #cfe5ff; }
+    .badge.termine { background: #cdeccd; }
+    .badge.refusee { background: #f6cccc; }
+    .badge.transferee { background: #e3d4f5; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .actions button { margin: 0; }
+    #bloc-admin { background: #fff8d6; border: 1px solid #e6c84d; border-radius: 6px;
+      padding: 10px; margin: 12px 0; }
+    #bloc-admin select { width: auto; display: inline-block; margin: 0 0 0 8px; }
     #fond-detail { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 10; }
     #boite-detail { background: #fff; padding: 20px; border-radius: 8px; max-width: 550px;
@@ -34,22 +47,39 @@
   </div>
 
   <div id="vue-appli" style="display:none">
-    <button onclick="deconnexion()">Se déconnecter</button>
+    <div class="barre">
+      <span>Connecté : <strong id="info-user"></strong> (<span id="info-role"></span>)</span>
+      <button onclick="deconnexion()">Se déconnecter</button>
+    </div>
 
-    <h2>Nouvelle demande</h2>
-    <input type="text" id="titre" placeholder="Titre">
-    <select id="lieu"></select>
-    <select id="corps_etat"></select>
-    <textarea id="descriptif" rows="4" placeholder="Décrivez le problème rencontré"></textarea>
-    <select id="priorite">
-      <option value="basse">Basse</option>
-      <option value="normale" selected>Normale</option>
-      <option value="haute">Haute</option>
-    </select>
-    <button onclick="creer()">Créer la demande</button>
+    <div id="bloc-admin" style="display:none">
+      <strong>Mode test (admin)</strong> -
+      <label for="select-simulation">Voir en tant que :</label>
+      <select id="select-simulation" onchange="changerSimulation()">
+        <option value="admin">Admin (mon vrai rôle)</option>
+        <option value="demandeur">Demandeur</option>
+        <option value="regie">Régie</option>
+        <option value="batiment">Batiments</option>
+      </select>
+      <div id="info-simulation" style="margin-top:6px;font-size:13px"></div>
+    </div>
 
-    <h2>Liste des demandes</h2>
-    <p><small>Cliquez sur une ligne pour voir le détail.</small></p>
+    <div id="bloc-creation">
+      <h2>Nouvelle demande</h2>
+      <input type="text" id="titre" placeholder="Titre">
+      <select id="lieu"></select>
+      <select id="corps_etat"></select>
+      <textarea id="descriptif" rows="4" placeholder="Décrivez le problème rencontré"></textarea>
+      <select id="priorite">
+        <option value="basse">Basse</option>
+        <option value="normale" selected>Normale</option>
+        <option value="haute">Haute</option>
+      </select>
+      <button onclick="creer()">Créer la demande</button>
+    </div>
+
+    <h2 id="titre-liste">Liste des demandes</h2>
+    <p><small>Cliquez sur une ligne pour voir le détail<span id="aide-actions"></span>.</small></p>
     <table>
       <thead>
         <tr><th>Titre</th><th>Lieu</th><th>Corps d'état</th><th>Priorité</th><th>Statut</th></tr>
@@ -65,10 +95,16 @@
       <p><strong>Corps d'état :</strong> <span id="detail-corps"></span></p>
       <p><strong>Priorité :</strong> <span id="detail-priorite"></span></p>
       <p><strong>Statut :</strong> <span id="detail-statut"></span></p>
+      <p><strong>Traitée par :</strong> <span id="detail-groupe"></span></p>
       <p><strong>Créée le :</strong> <span id="detail-date"></span></p>
       <p><strong>Descriptif :</strong></p>
       <div id="detail-descriptif"></div>
-      <button onclick="fermerDetail()">Fermer</button>
+      <div id="detail-refus-bloc" style="display:none">
+        <p><strong>Motif du refus :</strong></p>
+        <div id="detail-refus" style="white-space:pre-wrap;background:#fbeaea;padding:10px;border-radius:4px;"></div>
+      </div>
+      <div class="actions" id="detail-actions"></div>
+      <button onclick="fermerDetail()" style="margin-top:12px">Fermer</button>
     </div>
   </div>
 
@@ -97,6 +133,30 @@
       'Espaces verts',
       'Autre'
     ];
+
+    const LIBELLES_STATUT = {
+      a_traiter: 'à traiter',
+      en_cours: 'en cours',
+      termine: 'terminée',
+      refusee: 'refusée',
+      transferee: 'transférée'
+    };
+
+    const LIBELLES_ROLE = {
+      demandeur: 'demandeur',
+      regie: 'régie',
+      batiment: 'batiments',
+      admin: 'admin'
+    };
+
+    let monRole = 'demandeur';      // rôle réel (vient de la base)
+    let roleSimule = null;          // rôle simulé par l'admin (null = aucun)
+
+    // Rôle utilisé pour l'affichage et les boutons
+    function roleEffectif() {
+      if (monRole === 'admin' && roleSimule && roleSimule !== 'admin') { return roleSimule; }
+      return monRole;
+    }
 
     function remplirListes() {
       const selLieu = document.getElementById('lieu');
@@ -128,6 +188,7 @@
     }
 
     async function deconnexion() {
+      roleSimule = null;
       await db.auth.signOut();
       majVue();
     }
@@ -148,7 +209,9 @@
         lieu: lieu,
         corps_etat: corps,
         descriptif: descriptif,
-        priorite: document.getElementById('priorite').value
+        priorite: document.getElementById('priorite').value,
+        statut: 'a_traiter',
+        groupe: 'regie'
       });
       if (error) { alert(error.message); return; }
 
@@ -160,9 +223,54 @@
       charger();
     }
 
-    async function changerStatut(id, statut) {
-      const { error } = await db.from('interventions').update({ statut: statut }).eq('id', id);
-      if (error) { alert(error.message); }
+    async function modifier(id, champs) {
+      const { error } = await db.from('interventions').update(champs).eq('id', id);
+      if (error) { alert(error.message); return false; }
+      return true;
+    }
+
+    // ---------- Actions ----------
+    async function accepter(id) {
+      if (await modifier(id, { statut: 'en_cours' })) { fermerDetail(); charger(); }
+    }
+
+    async function refuser(id) {
+      const motif = prompt('Motif du refus (obligatoire) :');
+      if (motif === null) { return; }
+      if (!motif.trim()) { alert('Le motif du refus est obligatoire.'); return; }
+      if (await modifier(id, { statut: 'refusee', motif_refus: motif.trim() })) {
+        fermerDetail(); charger();
+      }
+    }
+
+    async function transferer(id) {
+      if (!confirm('Transférer cette demande au groupe batiments ?')) { return; }
+      if (await modifier(id, { statut: 'transferee', groupe: 'batiment' })) {
+        fermerDetail(); charger();
+      }
+    }
+
+    async function terminer(id) {
+      if (await modifier(id, { statut: 'termine' })) { fermerDetail(); charger(); }
+    }
+
+    async function mettreEnCours(id) {
+      if (await modifier(id, { statut: 'en_cours' })) { fermerDetail(); charger(); }
+    }
+
+    async function supprimer(id) {
+      if (!confirm('Supprimer définitivement cette demande ?')) { return; }
+      const { error } = await db.from('interventions').delete().eq('id', id);
+      if (error) { alert(error.message); return; }
+      fermerDetail(); charger();
+    }
+
+    // ---------- Fenêtre de détail ----------
+    function ajouterBouton(conteneur, texte, action) {
+      const b = document.createElement('button');
+      b.textContent = texte;
+      b.onclick = action;
+      conteneur.appendChild(b);
     }
 
     function afficherDetail(i) {
@@ -170,12 +278,53 @@
       document.getElementById('detail-lieu').textContent = i.lieu || '';
       document.getElementById('detail-corps').textContent = i.corps_etat || '';
       document.getElementById('detail-priorite').textContent = i.priorite || '';
-      document.getElementById('detail-statut').textContent = (i.statut || '').replace('_', ' ');
+      document.getElementById('detail-statut').textContent = LIBELLES_STATUT[i.statut] || i.statut || '';
+      document.getElementById('detail-groupe').textContent = LIBELLES_ROLE[i.groupe] || i.groupe || '';
       document.getElementById('detail-date').textContent =
         i.created_at ? new Date(i.created_at).toLocaleString('fr-FR') : '';
-      // Anciennes demandes : on retombe sur l'ancien champ description s'il existe
       document.getElementById('detail-descriptif').textContent =
         i.descriptif || i.description || '(aucun descriptif)';
+
+      const blocRefus = document.getElementById('detail-refus-bloc');
+      if (i.statut === 'refusee' && i.motif_refus) {
+        document.getElementById('detail-refus').textContent = i.motif_refus;
+        blocRefus.style.display = 'block';
+      } else {
+        blocRefus.style.display = 'none';
+      }
+
+      // Boutons d'action selon le rôle effectif et l'état de la demande
+      const actions = document.getElementById('detail-actions');
+      actions.innerHTML = '';
+      const role = roleEffectif();
+
+      if (role === 'regie' || role === 'admin') {
+        if (i.statut === 'a_traiter') {
+          ajouterBouton(actions, 'Accepter', function () { accepter(i.id); });
+          ajouterBouton(actions, 'Refuser', function () { refuser(i.id); });
+          ajouterBouton(actions, 'Transférer aux batiments', function () { transferer(i.id); });
+        } else if (i.statut === 'en_cours' && i.groupe === 'regie') {
+          ajouterBouton(actions, 'Marquer terminée', function () { terminer(i.id); });
+          ajouterBouton(actions, 'Transférer aux batiments', function () { transferer(i.id); });
+        }
+      }
+
+      if (role === 'batiment' || role === 'admin') {
+        if (i.groupe === 'batiment') {
+          if (i.statut === 'transferee') {
+            ajouterBouton(actions, 'Prendre en charge', function () { mettreEnCours(i.id); });
+          }
+          if (i.statut === 'transferee' || i.statut === 'en_cours') {
+            ajouterBouton(actions, 'Marquer terminée', function () { terminer(i.id); });
+          }
+        }
+      }
+
+      // Suppression : réservée à l'admin réel, pas en simulation
+      if (roleEffectif() === 'admin') {
+        ajouterBouton(actions, 'Supprimer', function () { supprimer(i.id); });
+      }
+
       document.getElementById('fond-detail').style.display = 'flex';
     }
 
@@ -183,12 +332,27 @@
       document.getElementById('fond-detail').style.display = 'none';
     }
 
+    // ---------- Liste ----------
     async function charger() {
       const { data, error } = await db.from('interventions').select('*').order('created_at', { ascending: false });
       if (error) { alert(error.message); return; }
+
+      // Filtrage d'affichage selon le rôle effectif (pour la simulation admin)
+      const role = roleEffectif();
+      let lignes = data;
+      if (role === 'demandeur') {
+        lignes = data.filter(function (i) { return i.statut !== 'termine' && i.statut !== 'refusee'; });
+      } else if (role === 'batiment') {
+        lignes = data.filter(function (i) { return i.groupe === 'batiment'; });
+      }
+
       const liste = document.getElementById('liste');
       liste.innerHTML = '';
-      data.forEach(function (i) {
+      if (lignes.length === 0) {
+        liste.innerHTML = '<tr><td colspan="5">Aucune demande à afficher.</td></tr>';
+        return;
+      }
+      lignes.forEach(function (i) {
         const tr = document.createElement('tr');
         tr.className = 'ligne';
         tr.innerHTML =
@@ -196,18 +360,8 @@
           '<td>' + echapper(i.lieu || '') + '</td>' +
           '<td>' + echapper(i.corps_etat || '') + '</td>' +
           '<td>' + echapper(i.priorite) + '</td>' +
-          '<td></td>';
-        const select = document.createElement('select');
-        ['a_traiter', 'en_cours', 'termine'].forEach(function (s) {
-          const opt = document.createElement('option');
-          opt.value = s;
-          opt.textContent = s.replace('_', ' ');
-          if (s === i.statut) opt.selected = true;
-          select.appendChild(opt);
-        });
-        select.onclick = function (e) { e.stopPropagation(); };
-        select.onchange = function () { changerStatut(i.id, select.value); };
-        tr.lastChild.appendChild(select);
+          '<td><span class="badge ' + echapper(i.statut) + '">' +
+            echapper(LIBELLES_STATUT[i.statut] || i.statut) + '</span></td>';
         tr.onclick = function () { afficherDetail(i); };
         liste.appendChild(tr);
       });
@@ -219,12 +373,70 @@
       return div.innerHTML;
     }
 
+    // ---------- Simulation de rôle (admin) ----------
+    function changerSimulation() {
+      roleSimule = document.getElementById('select-simulation').value;
+      appliquerRole();
+      charger();
+    }
+
+    // Met à jour tout ce qui dépend du rôle effectif
+    function appliquerRole() {
+      const role = roleEffectif();
+
+      document.getElementById('info-role').textContent = LIBELLES_ROLE[monRole] || monRole;
+
+      // Bandeau d'info en mode simulation
+      const info = document.getElementById('info-simulation');
+      if (monRole === 'admin' && roleSimule && roleSimule !== 'admin') {
+        info.textContent = 'Simulation active : vous voyez l\'application comme un utilisateur « ' +
+          LIBELLES_ROLE[roleSimule] + ' ». Vos droits réels en base restent ceux d\'admin.';
+      } else {
+        info.textContent = '';
+      }
+
+      // Les batiments ne créent pas de demandes
+      document.getElementById('bloc-creation').style.display = (role === 'batiment') ? 'none' : 'block';
+
+      if (role === 'demandeur') {
+        document.getElementById('titre-liste').textContent = 'Demandes en cours';
+        document.getElementById('aide-actions').textContent = '';
+      } else if (role === 'regie') {
+        document.getElementById('titre-liste').textContent = 'Toutes les demandes';
+        document.getElementById('aide-actions').textContent = ' et traiter la demande';
+      } else if (role === 'batiment') {
+        document.getElementById('titre-liste').textContent = 'Demandes transférées aux batiments';
+        document.getElementById('aide-actions').textContent = ' et traiter la demande';
+      } else {
+        document.getElementById('titre-liste').textContent = 'Toutes les demandes';
+        document.getElementById('aide-actions').textContent = ' et traiter la demande';
+      }
+    }
+
+    // ---------- Affichage selon connexion et rôle ----------
     async function majVue() {
       const { data } = await db.auth.getSession();
-      const connecte = data.session !== null;
+      const session = data.session;
+      const connecte = session !== null;
       document.getElementById('vue-connexion').style.display = connecte ? 'none' : 'block';
       document.getElementById('vue-appli').style.display = connecte ? 'block' : 'none';
-      if (connecte) { charger(); }
+      if (!connecte) { return; }
+
+      const { data: profil } = await db.from('profils').select('role').eq('id', session.user.id).single();
+      monRole = profil ? profil.role : 'demandeur';
+
+      document.getElementById('info-user').textContent = session.user.email;
+      document.getElementById('bloc-admin').style.display = (monRole === 'admin') ? 'block' : 'none';
+
+      if (monRole === 'admin') {
+        roleSimule = roleSimule || 'admin';
+        document.getElementById('select-simulation').value = roleSimule;
+      } else {
+        roleSimule = null;
+      }
+
+      appliquerRole();
+      charger();
     }
 
     db.channel('interventions-live')
