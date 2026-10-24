@@ -1,629 +1,224 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Travaux et maintenance</title>
-  <title>Demandes d'intervention</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    body { font-family: Arial, sans-serif; max-width: 950px; margin: 20px auto; padding: 0 10px; }
-    input, select, textarea, button { display: block; margin: 6px 0; padding: 8px; width: 100%; box-sizing: border-box; }
-    button { cursor: pointer; width: auto; }
-    body { font-family: Arial, sans-serif; max-width: 1000px; margin: 20px auto; padding: 0 10px; }
-    input, select, textarea { display: block; margin: 6px 0; padding: 6px; width: 100%; max-width: 400px; box-sizing: border-box; }
-    button { cursor: pointer; width: auto; padding: 6px 10px; margin: 2px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
-    tbody tr.ligne { cursor: pointer; }
-    tbody tr.ligne:hover { background: #f0f6ff; }
-    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; vertical-align: top; }
-    tr.ligne { cursor: pointer; }
-    tr.ligne:hover { background: #f3f7ff; }
-    tr.detail td { background: #fafafa; }
-    .erreur { color: red; }
-    .barre { display: flex; justify-content: space-between; align-items: center; }
-    .barre button { margin: 0; }
-    .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px; background: #e6e6e6; }
-    .badge.a_traiter { background: #fff1c2; }
-    .badge.en_cours { background: #cfe5ff; }
-    .badge.termine { background: #cdeccd; }
-    .badge.refusee { background: #f6cccc; }
-    .badge.transferee { background: #e3d4f5; }
-    .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-    .actions button { margin: 0; }
-    #bloc-admin { background: #fff8d6; border: 1px solid #e6c84d; border-radius: 6px;
-      padding: 10px; margin: 12px 0; }
-    #bloc-admin select { width: auto; display: inline-block; margin: 0 0 0 8px; }
-    #fond-detail { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 10; }
-    #boite-detail { background: #fff; padding: 20px; border-radius: 8px; max-width: 550px;
-      width: 90%; max-height: 85vh; overflow-y: auto; }
-    #boite-detail p { margin: 8px 0; }
-    #detail-descriptif { white-space: pre-wrap; background: #f6f6f6; padding: 10px; border-radius: 4px; }
-    .badge { padding: 2px 8px; border-radius: 10px; font-size: 12px; background: #eee; white-space: nowrap; }
-    .refusee { background: #ffd6d6; }
-    .termine { background: #d6ffd9; }
-    .en_cours { background: #fff3c4; }
-    .a_affecter { background: #d6e8ff; }
-    .a_traiter { background: #e8d6ff; }
-    #bandeau { margin-bottom: 15px; }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Travaux & maintenance</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0/dist/umd/supabase.min.js"></script>
+<style>
+:root{--bg:#eef1f3;--panel:#fff;--ink:#1c2b33;--mute:#5d6e77;--line:#d3dadf;--accent:#0d5c63;--warn:#c8641b;--bad:#b3261e;--ok:#2f7d4f;font-family:"Segoe UI",system-ui,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-size:15px}
+header{background:var(--accent);color:#fff;padding:12px 20px;display:flex;gap:16px;align-items:center;justify-content:space-between}
+header h1{font-size:18px;margin:0;font-weight:600}
+main{max-width:1100px;margin:0 auto;padding:20px}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:var(--accent);color:#fff;border:0;border-radius:4px;padding:8px 14px;cursor:pointer}
+button.sec{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+header button{background:#fff;color:var(--accent)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--warn);outline-offset:1px}
+input,select,textarea{border:1px solid var(--line);border-radius:4px;padding:7px 9px;background:#fff;width:100%}
+label{display:block;font-size:13px;color:var(--mute);margin:10px 0 3px}
+.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:14px}
+.bar>*{flex:1 1 150px}.bar .btn{flex:0 0 auto}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:8px 14px;min-width:110px}
+.stat b{font-size:22px;display:block}
+.stat span{color:var(--mute);font-size:13px}
+.table{background:var(--panel);border:1px solid var(--line);border-radius:4px;overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:720px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line)}
+th{font-size:13px;color:var(--mute);font-weight:600}
+tbody tr{cursor:pointer}tbody tr:hover{background:#f5f8f9}
+.tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:12px;border:1px solid currentColor}
+.p-urgente{color:var(--bad)}.p-haute{color:var(--warn)}.p-normale,.p-basse{color:var(--mute)}
+.s-resolue,.s-cloturee{color:var(--ok)}.s-en_cours{color:var(--accent)}.s-en_attente{color:var(--warn)}.s-nouvelle{color:var(--ink)}
+dialog{border:0;border-radius:6px;padding:20px;width:min(560px,94vw);box-shadow:0 8px 30px #0004}
+dialog::backdrop{background:#0006}
+.row{display:flex;gap:10px}.row>*{flex:1}
+.msg{color:var(--bad);font-size:13px;min-height:18px}
+.suivi{border-left:3px solid var(--line);padding:4px 10px;margin:8px 0;font-size:14px}
+.suivi small{color:var(--mute)}
+.empty{padding:30px;text-align:center;color:var(--mute)}
+#login{max-width:360px;margin:60px auto;background:var(--panel);padding:24px;border-radius:6px;border:1px solid var(--line)}
+.hide{display:none!important}
+</style>
 </head>
 <body>
-  <h1>Demandes d'intervention</h1>
+<header><h1>Travaux & maintenance</h1><button id="out" class="hide">Se déconnecter</button></header>
 
-  <!-- CONNEXION -->
-  <div id="vue-connexion">
-    <h2>Connexion</h2>
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="mdp" placeholder="Mot de passe">
-    <button onclick="connexion()">Se connecter</button>
-    <p id="message" class="erreur"></p>
-    <p id="msg-connexion" class="erreur"></p>
+<section id="login">
+  <h2 style="margin-top:0">Connexion</h2>
+  <label for="em">Adresse e-mail</label><input id="em" type="email" autocomplete="username">
+  <label for="pw">Mot de passe</label><input id="pw" type="password" autocomplete="current-password">
+  <p class="msg" id="lmsg"></p>
+  <button id="go">Se connecter</button>
+</section>
+
+<main id="app" class="hide">
+  <div class="stats" id="stats"></div>
+  <div class="bar">
+    <div><label for="fb">Bâtiment</label><select id="fb"></select></div>
+    <div><label for="fs">Statut</label><select id="fs"></select></div>
+    <div><label for="fp">Priorité</label><select id="fp"></select></div>
+    <div><label for="fq">Recherche</label><input id="fq" placeholder="Titre, local, demandeur"></div>
+    <button class="btn" id="new">Nouvelle demande</button>
+    <button class="btn sec" id="newb">Ajouter un bâtiment</button>
   </div>
-
-  <div id="vue-appli" style="display:none">
-    <div class="barre">
-      <span>Connecté : <strong id="info-user"></strong> (<span id="info-role"></span>)</span>
-      <button onclick="deconnexion()">Se déconnecter</button>
-  <!-- APPLICATION -->
-  <div id="vue-app" style="display:none">
-    <div id="bandeau">
-      Connecté : <strong id="qui"></strong> (<span id="role"></span>)
-      <button onclick="deconnexion()">Déconnexion</button>
-    </div>
-
-    <div id="bloc-admin" style="display:none">
-      <strong>Mode test (admin)</strong> -
-      <label for="select-simulation">Voir en tant que :</label>
-      <select id="select-simulation" onchange="changerSimulation()">
-        <option value="admin">Admin (mon vrai rôle)</option>
-        <option value="demandeur">Demandeur</option>
-        <option value="regie">Régie</option>
-        <option value="batiment">Batiments</option>
-      </select>
-      <div id="info-simulation" style="margin-top:6px;font-size:13px"></div>
-    </div>
-
-    <div id="bloc-creation">
-      <h2>Nouvelle demande</h2>
-      <input type="text" id="titre" placeholder="Titre">
-      <select id="lieu"></select>
-      <select id="corps_etat"></select>
-      <textarea id="descriptif" rows="4" placeholder="Décrivez le problème rencontré"></textarea>
-      <select id="priorite">
-        <option value="basse">Basse</option>
-        <option value="normale" selected>Normale</option>
-        <option value="haute">Haute</option>
-      </select>
-      <button onclick="creer()">Créer la demande</button>
-    </div>
-
-    <h2 id="titre-liste">Liste des demandes</h2>
-    <p><small>Cliquez sur une ligne pour voir le détail<span id="aide-actions"></span>.</small></p>
-    <h2>Nouvelle demande</h2>
-    <input type="text" id="titre" placeholder="Titre (obligatoire)">
-    <textarea id="description" rows="3" placeholder="Description"></textarea>
-    <input type="text" id="lieu" placeholder="Lieu">
-    <select id="priorite">
-      <option value="basse">Basse</option>
-      <option value="normale" selected>Normale</option>
-      <option value="haute">Haute</option>
-      <option value="urgente">Urgente</option>
-    </select>
-    <button onclick="creer()">Envoyer la demande</button>
-
-    <h2>Demandes</h2>
-    <table>
-      <thead>
-        <tr><th>Titre</th><th>Lieu</th><th>Corps d'état</th><th>Priorité</th><th>Statut</th></tr>
-        <tr><th>Titre</th><th>Lieu</th><th>Priorité</th><th>Statut</th><th>Créée le</th></tr>
-      </thead>
-      <tbody id="liste"></tbody>
-    </table>
+  <div class="table">
+    <table><thead><tr><th>N°</th><th>Demande</th><th>Bâtiment / local</th><th>Priorité</th><th>Statut</th><th>Créée le</th></tr></thead>
+    <tbody id="rows"></tbody></table>
+    <div id="empty" class="empty hide">Aucune demande ne correspond à ces filtres.</div>
   </div>
+</main>
 
-  <div id="fond-detail" onclick="fermerDetail()">
-    <div id="boite-detail" onclick="event.stopPropagation()">
-      <h2 id="detail-titre"></h2>
-      <p><strong>Lieu :</strong> <span id="detail-lieu"></span></p>
-      <p><strong>Corps d'état :</strong> <span id="detail-corps"></span></p>
-      <p><strong>Priorité :</strong> <span id="detail-priorite"></span></p>
-      <p><strong>Statut :</strong> <span id="detail-statut"></span></p>
-      <p><strong>Traitée par :</strong> <span id="detail-groupe"></span></p>
-      <p><strong>Créée le :</strong> <span id="detail-date"></span></p>
-      <p><strong>Descriptif :</strong></p>
-      <div id="detail-descriptif"></div>
-      <div id="detail-refus-bloc" style="display:none">
-        <p><strong>Motif du refus :</strong></p>
-        <div id="detail-refus" style="white-space:pre-wrap;background:#fbeaea;padding:10px;border-radius:4px;"></div>
-      </div>
-      <div class="actions" id="detail-actions"></div>
-      <button onclick="fermerDetail()" style="margin-top:12px">Fermer</button>
-    </div>
-  </div>
+<dialog id="dNew"><form method="dialog" id="fNew" style="margin:0">
+  <h2 style="margin-top:0">Nouvelle demande</h2>
+  <div class="row"><div><label for="nb">Bâtiment</label><select id="nb"></select></div><div><label for="nl">Local / zone</label><input id="nl"></div></div>
+  <label for="nt">Titre</label><input id="nt" required>
+  <label for="nd">Description</label><textarea id="nd" rows="3"></textarea>
+  <div class="row"><div><label for="np">Priorité</label><select id="np"></select></div><div><label for="nr">Demandeur</label><input id="nr"></div></div>
+  <p class="msg" id="nmsg"></p>
+  <div class="row"><button type="submit">Enregistrer la demande</button><button type="button" class="sec" data-close>Annuler</button></div>
+</form></dialog>
 
-  <script>
-    const SUPABASE_URL = 'https://iflehvsemyyyofkwpezv.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_TupRcFtwtofGhLlz8hwVxg_O8xAQzTx';
+<dialog id="dB"><form method="dialog" id="fB" style="margin:0">
+  <h2 style="margin-top:0">Ajouter un bâtiment</h2>
+  <label for="bn">Nom</label><input id="bn" required>
+  <label for="ba">Adresse</label><input id="ba">
+  <p class="msg" id="bmsg"></p>
+  <div class="row"><button type="submit">Ajouter le bâtiment</button><button type="button" class="sec" data-close>Annuler</button></div>
+</form></dialog>
 
-    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+<dialog id="dDet">
+  <h2 id="dt" style="margin-top:0"></h2>
+  <p id="dm" style="color:var(--mute);margin:0 0 8px"></p>
+  <p id="dd"></p>
+  <div class="row"><div><label for="ds">Statut</label><select id="ds"></select></div><div><label for="da">Assignée à</label><input id="da"></div></div>
+  <button id="dsave" style="margin-top:10px">Enregistrer les modifications</button>
+  <h3>Suivi</h3><div id="dlog"></div>
+  <label for="dmsg">Ajouter une note</label><textarea id="dmsg" rows="2"></textarea>
+  <p class="msg" id="dermsg"></p>
+  <div class="row" style="margin-top:8px"><button id="dnote">Ajouter la note</button><button class="sec" data-close>Fermer</button></div>
+</dialog>
 
-    // Listes prédéfinies : modifiez les valeurs selon votre établissement
-    const LIEUX = [
-      'Bâtiment A',
-      'Bâtiment B',
-      'Extérieurs',
-      'Parking',
-      'Local technique'
-    ];
-
-    const CORPS_ETAT = [
-      'Électricité',
-      'Plomberie',
-      'Chauffage / Ventilation',
-      'Menuiserie',
-      'Serrurerie',
-      'Peinture',
-      'Espaces verts',
-      'Autre'
-    ];
-
-    const LIBELLES_STATUT = {
-      a_traiter: 'à traiter',
-      en_cours: 'en cours',
-      termine: 'terminée',
-      refusee: 'refusée',
-      transferee: 'transférée'
-    };
-
-    const LIBELLES_ROLE = {
-      demandeur: 'demandeur',
-      regie: 'régie',
-      batiment: 'batiments',
-      admin: 'admin'
-    };
-
-    let monRole = 'demandeur';      // rôle réel (vient de la base)
-    let roleSimule = null;          // rôle simulé par l'admin (null = aucun)
-
-    // Rôle utilisé pour l'affichage et les boutons
-    function roleEffectif() {
-      if (monRole === 'admin' && roleSimule && roleSimule !== 'admin') { return roleSimule; }
-      return monRole;
-    }
-
-    function remplirListes() {
-      const selLieu = document.getElementById('lieu');
-      const selCorps = document.getElementById('corps_etat');
-      selLieu.innerHTML = '<option value="">-- Choisir un lieu --</option>';
-      selCorps.innerHTML = '<option value="">-- Choisir un corps d\'état --</option>';
-      LIEUX.forEach(function (l) {
-        const o = document.createElement('option');
-        o.value = l; o.textContent = l;
-        selLieu.appendChild(o);
-      });
-      CORPS_ETAT.forEach(function (c) {
-        const o = document.createElement('option');
-        o.value = c; o.textContent = c;
-        selCorps.appendChild(o);
-      });
-    }
-
-    async function connexion() {
-      const email = document.getElementById('email').value;
-      const mdp = document.getElementById('mdp').value;
-      const { error } = await db.auth.signInWithPassword({ email: email, password: mdp });
-      if (error) {
-        document.getElementById('message').textContent = error.message;
-      } else {
-        document.getElementById('message').textContent = '';
-        majVue();
-      }
-    }
-
-    async function deconnexion() {
-      roleSimule = null;
-      await db.auth.signOut();
-      majVue();
-    }
-
-    async function creer() {
-      const titre = document.getElementById('titre').value.trim();
-      const lieu = document.getElementById('lieu').value;
-      const corps = document.getElementById('corps_etat').value;
-      const descriptif = document.getElementById('descriptif').value.trim();
-
-      if (!titre) { alert('Le titre est obligatoire'); return; }
-      if (!lieu) { alert('Veuillez choisir un lieu'); return; }
-      if (!corps) { alert('Veuillez choisir un corps d\'état'); return; }
-      if (!descriptif) { alert('Le descriptif du problème est obligatoire'); return; }
-
-      const { error } = await db.from('interventions').insert({
-        titre: titre,
-        lieu: lieu,
-        corps_etat: corps,
-        descriptif: descriptif,
-        priorite: document.getElementById('priorite').value,
-        statut: 'a_traiter',
-        groupe: 'regie'
-      });
-      if (error) { alert(error.message); return; }
-
-      document.getElementById('titre').value = '';
-      document.getElementById('lieu').value = '';
-      document.getElementById('corps_etat').value = '';
-      document.getElementById('descriptif').value = '';
-      document.getElementById('priorite').value = 'normale';
-      charger();
-    }
-
-    async function modifier(id, champs) {
-      const { error } = await db.from('interventions').update(champs).eq('id', id);
-      if (error) { alert(error.message); return false; }
-      return true;
-    }
-
-    // ---------- Actions ----------
-    async function accepter(id) {
-      if (await modifier(id, { statut: 'en_cours' })) { fermerDetail(); charger(); }
-    }
-
-    async function refuser(id) {
-      const motif = prompt('Motif du refus (obligatoire) :');
-      if (motif === null) { return; }
-      if (!motif.trim()) { alert('Le motif du refus est obligatoire.'); return; }
-      if (await modifier(id, { statut: 'refusee', motif_refus: motif.trim() })) {
-        fermerDetail(); charger();
-      }
-    }
-
-    async function transferer(id) {
-      if (!confirm('Transférer cette demande au groupe batiments ?')) { return; }
-      if (await modifier(id, { statut: 'transferee', groupe: 'batiment' })) {
-        fermerDetail(); charger();
-      }
-    }
-
-    async function terminer(id) {
-      if (await modifier(id, { statut: 'termine' })) { fermerDetail(); charger(); }
-    }
-
-    async function mettreEnCours(id) {
-      if (await modifier(id, { statut: 'en_cours' })) { fermerDetail(); charger(); }
-    }
-
-    async function supprimer(id) {
-      if (!confirm('Supprimer définitivement cette demande ?')) { return; }
-      const { error } = await db.from('interventions').delete().eq('id', id);
-      if (error) { alert(error.message); return; }
-      fermerDetail(); charger();
-    }
-
-    // ---------- Fenêtre de détail ----------
-    function ajouterBouton(conteneur, texte, action) {
-      const b = document.createElement('button');
-      b.textContent = texte;
-      b.onclick = action;
-      conteneur.appendChild(b);
-    }
-
-    function afficherDetail(i) {
-      document.getElementById('detail-titre').textContent = i.titre || '';
-      document.getElementById('detail-lieu').textContent = i.lieu || '';
-      document.getElementById('detail-corps').textContent = i.corps_etat || '';
-      document.getElementById('detail-priorite').textContent = i.priorite || '';
-      document.getElementById('detail-statut').textContent = LIBELLES_STATUT[i.statut] || i.statut || '';
-      document.getElementById('detail-groupe').textContent = LIBELLES_ROLE[i.groupe] || i.groupe || '';
-      document.getElementById('detail-date').textContent =
-        i.created_at ? new Date(i.created_at).toLocaleString('fr-FR') : '';
-      document.getElementById('detail-descriptif').textContent =
-        i.descriptif || i.description || '(aucun descriptif)';
-
-      const blocRefus = document.getElementById('detail-refus-bloc');
-      if (i.statut === 'refusee' && i.motif_refus) {
-        document.getElementById('detail-refus').textContent = i.motif_refus;
-        blocRefus.style.display = 'block';
-      } else {
-        blocRefus.style.display = 'none';
-      }
-
-      // Boutons d'action selon le rôle effectif et l'état de la demande
-      const actions = document.getElementById('detail-actions');
-      actions.innerHTML = '';
-      const role = roleEffectif();
-
-      if (role === 'regie' || role === 'admin') {
-        if (i.statut === 'a_traiter') {
-          ajouterBouton(actions, 'Accepter', function () { accepter(i.id); });
-          ajouterBouton(actions, 'Refuser', function () { refuser(i.id); });
-          ajouterBouton(actions, 'Transférer aux batiments', function () { transferer(i.id); });
-        } else if (i.statut === 'en_cours' && i.groupe === 'regie') {
-          ajouterBouton(actions, 'Marquer terminée', function () { terminer(i.id); });
-          ajouterBouton(actions, 'Transférer aux batiments', function () { transferer(i.id); });
-        }
-      }
-
-      if (role === 'batiment' || role === 'admin') {
-        if (i.groupe === 'batiment') {
-          if (i.statut === 'transferee') {
-            ajouterBouton(actions, 'Prendre en charge', function () { mettreEnCours(i.id); });
-          }
-          if (i.statut === 'transferee' || i.statut === 'en_cours') {
-            ajouterBouton(actions, 'Marquer terminée', function () { terminer(i.id); });
-          }
-        }
-      }
-
-      // Suppression : réservée à l'admin réel, pas en simulation
-      if (roleEffectif() === 'admin') {
-        ajouterBouton(actions, 'Supprimer', function () { supprimer(i.id); });
-      }
-
-      document.getElementById('fond-detail').style.display = 'flex';
-    }
-
-    function fermerDetail() {
-      document.getElementById('fond-detail').style.display = 'none';
-    }
-
-    // ---------- Liste ----------
-    async function charger() {
-      const { data, error } = await db.from('interventions').select('*').order('created_at', { ascending: false });
-      if (error) { alert(error.message); return; }
-
-      // Filtrage d'affichage selon le rôle effectif (pour la simulation admin)
-      const role = roleEffectif();
-      let lignes = data;
-      if (role === 'demandeur') {
-        lignes = data.filter(function (i) { return i.statut !== 'termine' && i.statut !== 'refusee'; });
-      } else if (role === 'batiment') {
-        lignes = data.filter(function (i) { return i.groupe === 'batiment'; });
-      }
-
-      const liste = document.getElementById('liste');
-      liste.innerHTML = '';
-      if (lignes.length === 0) {
-        liste.innerHTML = '<tr><td colspan="5">Aucune demande à afficher.</td></tr>';
-        return;
-      }
-      lignes.forEach(function (i) {
-        const tr = document.createElement('tr');
-        tr.className = 'ligne';
-        tr.innerHTML =
-          '<td>' + echapper(i.titre) + '</td>' +
-          '<td>' + echapper(i.lieu || '') + '</td>' +
-          '<td>' + echapper(i.corps_etat || '') + '</td>' +
-          '<td>' + echapper(i.priorite) + '</td>' +
-          '<td><span class="badge ' + echapper(i.statut) + '">' +
-            echapper(LIBELLES_STATUT[i.statut] || i.statut) + '</span></td>';
-        tr.onclick = function () { afficherDetail(i); };
-        liste.appendChild(tr);
-      });
-    }
-
-    function echapper(texte) {
-      const div = document.createElement('div');
-      div.textContent = texte;
-      return div.innerHTML;
-    }
-
-    // ---------- Simulation de rôle (admin) ----------
-    function changerSimulation() {
-      roleSimule = document.getElementById('select-simulation').value;
-      appliquerRole();
-      charger();
-    }
-
-    // Met à jour tout ce qui dépend du rôle effectif
-    function appliquerRole() {
-      const role = roleEffectif();
-
-      document.getElementById('info-role').textContent = LIBELLES_ROLE[monRole] || monRole;
-
-      // Bandeau d'info en mode simulation
-      const info = document.getElementById('info-simulation');
-      if (monRole === 'admin' && roleSimule && roleSimule !== 'admin') {
-        info.textContent = 'Simulation active : vous voyez l\'application comme un utilisateur « ' +
-          LIBELLES_ROLE[roleSimule] + ' ». Vos droits réels en base restent ceux d\'admin.';
-      } else {
-        info.textContent = '';
-      }
-
-      // Les batiments ne créent pas de demandes
-      document.getElementById('bloc-creation').style.display = (role === 'batiment') ? 'none' : 'block';
-
-      if (role === 'demandeur') {
-        document.getElementById('titre-liste').textContent = 'Demandes en cours';
-        document.getElementById('aide-actions').textContent = '';
-      } else if (role === 'regie') {
-        document.getElementById('titre-liste').textContent = 'Toutes les demandes';
-        document.getElementById('aide-actions').textContent = ' et traiter la demande';
-      } else if (role === 'batiment') {
-        document.getElementById('titre-liste').textContent = 'Demandes transférées aux batiments';
-        document.getElementById('aide-actions').textContent = ' et traiter la demande';
-      } else {
-        document.getElementById('titre-liste').textContent = 'Toutes les demandes';
-        document.getElementById('aide-actions').textContent = ' et traiter la demande';
-      }
-    }
-
-    // ---------- Affichage selon connexion et rôle ----------
-    async function majVue() {
-      const { data } = await db.auth.getSession();
-      const session = data.session;
-      const connecte = session !== null;
-      document.getElementById('vue-connexion').style.display = connecte ? 'none' : 'block';
-      document.getElementById('vue-appli').style.display = connecte ? 'block' : 'none';
-      if (!connecte) { return; }
-
-      const { data: profil } = await db.from('profils').select('role').eq('id', session.user.id).single();
-      monRole = profil ? profil.role : 'demandeur';
-
-      document.getElementById('info-user').textContent = session.user.email;
-      document.getElementById('bloc-admin').style.display = (monRole === 'admin') ? 'block' : 'none';
-
-      if (monRole === 'admin') {
-        roleSimule = roleSimule || 'admin';
-        document.getElementById('select-simulation').value = roleSimule;
-      } else {
-        roleSimule = null;
-      }
-
-      appliquerRole();
-      charger();
-    }
-
-    db.channel('interventions-live')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'interventions' }, function () { charger(); })
-      .subscribe();
-
-    remplirListes();
-    majVue();
-  </script>
 <script>
-  // À ADAPTER : vos identifiants Supabase
-  const SUPABASE_URL = 'https://iflehvsemyyyofkwpezv.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_TupRcFtwtofGhLlz8hwVxg_O8xAQzTx';
-  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// ====== À RENSEIGNER (Supabase > Project Settings > API) ======
+const SUPABASE_URL = "https://VOTRE-PROJET.supabase.co";
+const SUPABASE_KEY = "VOTRE_CLE_ANON_PUBLIQUE";
+// ==============================================================
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const $ = id => document.getElementById(id);
+const STATUTS = {nouvelle:"Nouvelle",en_cours:"En cours",en_attente:"En attente",resolue:"Résolue",cloturee:"Clôturée"};
+const PRIOS = {basse:"Basse",normale:"Normale",haute:"Haute",urgente:"Urgente"};
+let bats = [], dem = [], cur = null, user = null;
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const opts = (o, all) => (all ? `<option value="">${all}</option>` : "") + Object.entries(o).map(([k,v]) => `<option value="${k}">${v}</option>`).join("");
+const batName = id => (bats.find(b => b.id === id) || {}).nom || "Sans bâtiment";
 
-  let monRole = null;
-  let ouvert = null; // id de la ligne dont le détail est affiché
+$("fs").innerHTML = opts(STATUTS, "Tous les statuts");
+$("fp").innerHTML = opts(PRIOS, "Toutes les priorités");
+$("np").innerHTML = opts(PRIOS); $("np").value = "normale";
+$("ds").innerHTML = opts(STATUTS);
+document.querySelectorAll("[data-close]").forEach(b => b.onclick = () => b.closest("dialog").close());
 
-  const LIBELLES = {
-    a_affecter: 'À affecter', a_traiter: 'À traiter', en_cours: 'En cours',
-    termine: 'Terminé', refusee: 'Refusée', archivee: 'Archivée'
-  };
+async function start() {
+  const { data } = await sb.auth.getSession();
+  user = data.session && data.session.user;
+  $("login").classList.toggle("hide", !!user);
+  $("app").classList.toggle("hide", !user);
+  $("out").classList.toggle("hide", !user);
+  if (user) load();
+}
+$("go").onclick = async () => {
+  const { error } = await sb.auth.signInWithPassword({ email: $("em").value, password: $("pw").value });
+  if (error) $("lmsg").textContent = "Connexion impossible : vérifiez l'e-mail et le mot de passe."; else start();
+};
+$("out").onclick = async () => { await sb.auth.signOut(); start(); };
 
-  function esc(s) {
-    return String(s ?? '').replace(/[&<>"']/g, c =>
-      ({ '&': '&', '<': '<', '>': '>', '"': '"', "'": ''' }[c]));
-  }
+async function load() {
+  const [b, d] = await Promise.all([
+    sb.from("batiments").select("*").order("nom"),
+    sb.from("demandes").select("*").order("created_at", { ascending: false })
+  ]);
+  if (b.error || d.error) { alert("Erreur de chargement : " + (b.error || d.error).message); return; }
+  bats = b.data; dem = d.data;
+  const sel = $("fb").value;
+  $("fb").innerHTML = `<option value="">Tous les bâtiments</option>` + bats.map(x => `<option value="${x.id}">${esc(x.nom)}</option>`).join("");
+  $("fb").value = sel;
+  $("nb").innerHTML = bats.map(x => `<option value="${x.id}">${esc(x.nom)}</option>`).join("");
+  render();
+}
 
-  // ---------- Connexion ----------
-  async function connexion() {
-    const { error } = await db.auth.signInWithPassword({
-      email: document.getElementById('email').value,
-      password: document.getElementById('mdp').value
-    });
-    if (error) { document.getElementById('msg-connexion').textContent = error.message; return; }
-    demarrer();
-  }
+function render() {
+  const q = $("fq").value.toLowerCase();
+  const list = dem.filter(x =>
+    (!$("fb").value || String(x.batiment_id) === $("fb").value) &&
+    (!$("fs").value || x.statut === $("fs").value) &&
+    (!$("fp").value || x.priorite === $("fp").value) &&
+    (!q || [x.titre, x.local, x.demandeur].join(" ").toLowerCase().includes(q)));
+  const ouvertes = dem.filter(x => !["resolue","cloturee"].includes(x.statut));
+  $("stats").innerHTML = [
+    ["Ouvertes", ouvertes.length], ["Urgentes ouvertes", ouvertes.filter(x => x.priorite === "urgente").length],
+    ["En attente", dem.filter(x => x.statut === "en_attente").length], ["Résolues", dem.filter(x => x.statut === "resolue" || x.statut === "cloturee").length]
+  ].map(([l, n]) => `<div class="stat"><b>${n}</b><span>${l}</span></div>`).join("");
+  $("empty").classList.toggle("hide", list.length > 0);
+  $("rows").innerHTML = list.map(x => `<tr data-id="${x.id}">
+    <td>${x.id}</td><td>${esc(x.titre)}</td><td>${esc(batName(x.batiment_id))}${x.local ? " – " + esc(x.local) : ""}</td>
+    <td><span class="tag p-${x.priorite}">${PRIOS[x.priorite]}</span></td>
+    <td><span class="tag s-${x.statut}">${STATUTS[x.statut]}</span></td>
+    <td>${new Date(x.created_at).toLocaleDateString("fr-FR")}</td></tr>`).join("");
+}
+["fb","fs","fp"].forEach(i => $(i).onchange = render);
+$("fq").oninput = render;
+$("rows").onclick = e => { const tr = e.target.closest("tr"); if (tr) openDet(+tr.dataset.id); };
 
-  async function deconnexion() {
-    await db.auth.signOut();
-    location.reload();
-  }
+$("new").onclick = () => { $("fNew").reset(); $("np").value = "normale"; $("nmsg").textContent = ""; $("nr").value = user.email; $("dNew").showModal(); };
+$("fNew").onsubmit = async e => {
+  e.preventDefault();
+  const { error } = await sb.from("demandes").insert({
+    batiment_id: $("nb").value || null, local: $("nl").value, titre: $("nt").value,
+    description: $("nd").value, priorite: $("np").value, demandeur: $("nr").value });
+  if (error) { $("nmsg").textContent = "Enregistrement impossible : " + error.message; return; }
+  $("dNew").close(); load();
+};
 
-  async function demarrer() {
-    const { data: { user } } = await db.auth.getUser();
-    if (!user) return;
+$("newb").onclick = () => { $("fB").reset(); $("bmsg").textContent = ""; $("dB").showModal(); };
+$("fB").onsubmit = async e => {
+  e.preventDefault();
+  const { error } = await sb.from("batiments").insert({ nom: $("bn").value, adresse: $("ba").value });
+  if (error) { $("bmsg").textContent = "Ajout impossible : " + error.message; return; }
+  $("dB").close(); load();
+};
 
-    // À ADAPTER si votre table de profils porte un autre nom
-    const { data: profil } = await db.from('profils').select('role').eq('id', user.id).single();
-    monRole = profil ? profil.role : null;
-
-    document.getElementById('qui').textContent = user.email;
-    document.getElementById('role').textContent = monRole || 'aucun rôle';
-    document.getElementById('vue-connexion').style.display = 'none';
-    document.getElementById('vue-app').style.display = 'block';
-    charger();
-  }
-
-  // ---------- Création ----------
-  async function creer() {
-    const titre = document.getElementById('titre').value.trim();
-    if (!titre) { alert('Le titre est obligatoire'); return; }
-    const { error } = await db.from('interventions').insert({
-      titre: titre,
-      description: document.getElementById('description').value,
-      lieu: document.getElementById('lieu').value,
-      priorite: document.getElementById('priorite').value
-    });
-    if (error) { alert(error.message); return; }
-    document.getElementById('titre').value = '';
-    document.getElementById('description').value = '';
-    document.getElementById('lieu').value = '';
-    document.getElementById('priorite').value = 'normale';
-    charger();
-  }
-
-  // ---------- Liste ----------
-  async function charger() {
-    const { data, error } = await db.from('interventions')
-      .select('*').order('created_at', { ascending: false });
-    const tbody = document.getElementById('liste');
-    if (error) { tbody.innerHTML = '<tr><td colspan="5" class="erreur">' + esc(error.message) + '</td></tr>'; return; }
-    if (!data.length) { tbody.innerHTML = '<tr><td colspan="5">Aucune demande.</td></tr>'; return; }
-
-    tbody.innerHTML = '';
-    data.forEach(i => {
-      const tr = document.createElement('tr');
-      tr.className = 'ligne';
-      tr.onclick = () => { ouvert = (ouvert === i.id ? null : i.id); charger(); };
-      tr.innerHTML =
-        '<td>' + esc(i.titre) + '</td>' +
-        '<td>' + esc(i.lieu) + '</td>' +
-        '<td>' + esc(i.priorite) + '</td>' +
-        '<td><span class="badge ' + i.statut + '">' + (LIBELLES[i.statut] || esc(i.statut)) + '</span></td>' +
-        '<td>' + new Date(i.created_at).toLocaleDateString('fr-FR') + '</td>';
-      tbody.appendChild(tr);
-
-      if (ouvert === i.id) tbody.appendChild(ligneDetail(i));
-    });
-  }
-
-  // ---------- Détail + actions ----------
-  function ligneDetail(i) {
-    const tr = document.createElement('tr');
-    tr.className = 'detail';
-    let html = '<td colspan="5">';
-    html += '<strong>Description :</strong><br>' + (esc(i.description).replace(/\n/g, '<br>') || '<em>Aucune description</em>');
-    if (i.affectation) html += '<br><br><strong>Affectation :</strong> ' + (i.affectation === 'batiment' ? 'Service bâtiment' : 'Régie');
-    if (i.statut === 'refusee' && i.motif_refus) html += '<br><br><strong>Motif du refus :</strong> ' + esc(i.motif_refus);
-    html += '<div style="margin-top:10px">' + actions(i) + '</div></td>';
-    tr.innerHTML = html;
-    return tr;
-  }
-
-  function actions(i) {
-    const peutGerer = monRole === 'admin' || monRole === 'regie' ||
-                      (monRole === 'batiment' && i.affectation === 'batiment');
-    if (!peutGerer) return '';
-    let b = '';
-    if (i.statut === 'a_affecter' && (monRole === 'admin' || monRole === 'regie')) {
-      b += '<button onclick="accepter(\'' + i.id + '\')">Accepter (régie)</button>';
-      b += '<button onclick="transferer(\'' + i.id + '\')">Transférer au bâtiment</button>';
-      b += '<button onclick="refuser(\'' + i.id + '\')">Refuser</button>';
-    }
-    if (i.statut === 'a_traiter') {
-      b += '<button onclick="changerStatut(\'' + i.id + '\',\'en_cours\')">Prendre en charge</button>';
-      if (monRole !== 'batiment') b += '<button onclick="transferer(\'' + i.id + '\')">Transférer au bâtiment</button>';
-    }
-    if (i.statut === 'en_cours') {
-      b += '<button onclick="changerStatut(\'' + i.id + '\',\'termine\')">Terminer</button>';
-    }
-    return b;
-  }
-
-  async function maj(id, champs) {
-    const { error } = await db.from('interventions').update(champs).eq('id', id);
-    if (error) { alert(error.message); return; }
-    charger();
-  }
-
-  function accepter(id)   { maj(id, { statut: 'a_traiter', affectation: 'regie' }); }
-  function transferer(id) { maj(id, { statut: 'a_traiter', affectation: 'batiment' }); }
-  function changerStatut(id, statut) { maj(id, { statut: statut }); }
-  function refuser(id) {
-    const motif = prompt('Motif du refus (visible par le demandeur) :');
-    if (motif === null) return;
-    maj(id, { statut: 'refusee', motif_refus: motif, date_refus: new Date().toISOString() });
-  }
-
-  // Reprise de session au chargement de la page
-  db.auth.getSession().then(({ data }) => { if (data.session) demarrer(); });
+async function openDet(id) {
+  cur = dem.find(x => x.id === id);
+  $("dt").textContent = `#${cur.id} – ${cur.titre}`;
+  $("dm").textContent = `${batName(cur.batiment_id)}${cur.local ? " – " + cur.local : ""} · demandée par ${cur.demandeur || "inconnu"} le ${new Date(cur.created_at).toLocaleDateString("fr-FR")}`;
+  $("dd").textContent = cur.description || "Aucune description.";
+  $("ds").value = cur.statut; $("da").value = cur.assigne_a || ""; $("dmsg").value = ""; $("dermsg").textContent = "";
+  $("dDet").showModal(); loadLog();
+}
+async function loadLog() {
+  const { data } = await sb.from("suivi").select("*").eq("demande_id", cur.id).order("created_at");
+  $("dlog").innerHTML = (data || []).map(s => `<div class="suivi">${esc(s.message)}<br><small>${esc(s.auteur)} – ${new Date(s.created_at).toLocaleString("fr-FR")}</small></div>`).join("") || `<p class="empty" style="padding:8px">Aucune note pour l'instant.</p>`;
+}
+async function note(msg) { return sb.from("suivi").insert({ demande_id: cur.id, auteur: user.email, message: msg }); }
+$("dsave").onclick = async () => {
+  const upd = { statut: $("ds").value, assigne_a: $("da").value || null };
+  upd.resolue_at = ["resolue","cloturee"].includes(upd.statut) ? new Date().toISOString() : null;
+  const { error } = await sb.from("demandes").update(upd).eq("id", cur.id);
+  if (error) { $("dermsg").textContent = "Modification impossible : " + error.message; return; }
+  if (upd.statut !== cur.statut) await note(`Statut changé : ${STATUTS[cur.statut]} → ${STATUTS[upd.statut]}`);
+  Object.assign(cur, upd); await load(); loadLog(); $("dermsg").textContent = "";
+};
+$("dnote").onclick = async () => {
+  if (!$("dmsg").value.trim()) return;
+  const { error } = await note($("dmsg").value.trim());
+  if (error) { $("dermsg").textContent = "Note non enregistrée : " + error.message; return; }
+  $("dmsg").value = ""; loadLog();
+};
+start();
 </script>
 </body>
 </html>
