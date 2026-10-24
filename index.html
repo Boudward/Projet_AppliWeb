@@ -11,7 +11,7 @@ main{max-width:1100px;margin:0 auto;padding:20px}
 button,input,select,textarea{font:inherit;color:inherit}
 button{background:var(--accent);color:#fff;border:0;border-radius:4px;padding:8px 14px;cursor:pointer}
 button.sec{background:transparent;color:var(--accent);border:1px solid var(--accent)}
-header button{background:#fff;color:var(--accent)}header select{width:auto}
+header button{background:#fff;color:var(--accent)}header select{width:auto;color:var(--accent);font-weight:600}
 :focus-visible{outline:2px solid var(--warn);outline-offset:1px}
 input,select,textarea{border:1px solid var(--line);border-radius:4px;padding:7px 9px;background:#fff;width:100%}
 label{display:block;font-size:13px;color:var(--mute);margin:10px 0 3px}
@@ -26,6 +26,17 @@ dialog{border:0;border-radius:6px;padding:20px;width:min(560px,94vw);box-shadow:
 .suivi{border-left:3px solid var(--line);padding:4px 10px;margin:8px 0;font-size:14px}.suivi small{color:var(--mute)}
 .empty{padding:24px;text-align:center;color:var(--mute)}
 #login{max-width:400px;margin:40px auto;background:#fff;padding:24px;border-radius:6px;border:1px solid var(--line)}
+th{white-space:nowrap}
+td.nw{white-space:nowrap}td.tt{min-width:220px;overflow-wrap:anywhere}td.lc{min-width:180px;overflow-wrap:anywhere}
+tr.new td{font-weight:700}
+tr.urg td,tr.urg .tag{color:var(--bad)}
+tr.res{opacity:.7}
+button.hb,button.hf{background:none;color:var(--mute);border:0;padding:0 3px;font-size:13px;font-weight:600}
+button.hb:hover,button.hf:hover{color:var(--accent)}button.hf.on{color:var(--accent)}
+.pop{position:absolute;z-index:20;width:260px;background:#fff;border:1px solid var(--line);border-radius:4px;box-shadow:0 6px 20px #0003;padding:10px;display:flex;flex-direction:column;gap:6px}
+#pl{max-height:200px;overflow:auto;border:1px solid var(--line);padding:4px}
+.ck{display:flex;gap:6px;align-items:center;margin:2px 0;color:var(--ink);font-size:14px}.ck input{width:auto}
+button.pb{text-align:left;padding:6px 8px;font-size:13px}
 .hide{display:none!important}a.lnk{color:var(--accent);cursor:pointer;text-decoration:underline}
 </style></head><body>
 <header><h1>Travaux & maintenance</h1><div id="hd" class="hide">
@@ -51,7 +62,7 @@ dialog{border:0;border-radius:6px;padding:20px;width:min(560px,94vw);box-shadow:
    <div><label for="fst">Statut</label><select id="fst"></select></div><div><label for="fp">Priorité</label><select id="fp"></select></div>
    <div><label for="fq">Recherche</label><input id="fq" placeholder="N°, titre, local"></div>
    <button class="btn" id="new">Nouveau ticket</button></div>
-  <div class="table"><table><thead><tr><th>N°</th><th>Ticket</th><th>Site / tribune / local</th><th>Priorité</th><th>Statut</th><th>Créé le</th></tr></thead><tbody id="rows"></tbody></table>
+  <div class="table"><table><thead><tr id="hr"></tr></thead><tbody id="rows"></tbody></table>
   <div id="empty" class="empty hide">Aucun ticket ne correspond à ces filtres.</div></div>
   <p class="empty hide" id="agentmsg">Les interventions arriveront à l'étape suivante : cet espace est réservé aux agents.</p>
  </div>
@@ -73,6 +84,7 @@ dialog{border:0;border-radius:6px;padding:20px;width:min(560px,94vw);box-shadow:
  <label for="np">Priorité</label><select id="np"></select>
  <p class="msg" id="nmsg"></p><div class="row"><button type="submit">Enregistrer le ticket</button><button type="button" class="sec" data-close>Annuler</button></div></form></dialog>
 
+<div id="pop" class="pop hide"></div>
 <dialog id="dPw"><h2 style="margin-top:0">Choisissez votre mot de passe</h2><label for="np1">Mot de passe (8 caractères minimum)</label><input id="np1" type="password" autocomplete="new-password"><p class="msg" id="pmsg"></p><button id="pwok">Enregistrer le mot de passe</button></dialog>
 <dialog id="dDet"><h2 id="dt" style="margin-top:0"></h2><p id="dm" style="color:var(--mute);margin:0 0 8px"></p><p id="dd"></p>
  <div id="dedit"><label for="ds">Statut</label><select id="ds"></select><button id="dsave" style="margin-top:8px">Enregistrer le statut</button>
@@ -141,12 +153,13 @@ function render(){
  document.querySelector("#tk .bar").classList.toggle("hide",isAgent);document.querySelector("#tk .table").classList.toggle("hide",isAgent);$("agentmsg").classList.toggle("hide",!isAgent);
  $("new").classList.toggle("hide",isAgent);
  const q=$("fq").value.toLowerCase();
- const list=tk.filter(x=>(r!=="demandeur"||(x.demandeur_id===me.id&&x.statut!=="archivee"))&&
+ const baseL=tk.filter(x=>(r!=="demandeur"||(x.demandeur_id===me.id&&x.statut!=="archivee"))&&
   (!$("fs").value||x.site_id==$("fs").value)&&(!$("ft").value||x.tribune_id==$("ft").value)&&(!$("fst").value||x.statut===$("fst").value)&&(!$("fp").value||x.priorite===$("fp").value)&&
   (!q||[x.ref,x.titre,x.local].join(" ").toLowerCase().includes(q)));
+ lastBase=baseL;const list=sortFilt(baseL);head();
  $("empty").classList.toggle("hide",list.length>0);
- $("rows").innerHTML=list.map(x=>`<tr class="c" data-id="${x.id}"><td>${x.ref}</td><td>${esc(x.titre)}</td><td>${esc(siteN(x.site_id))} / ${esc(tribN(x.tribune_id))}${x.local?" / "+esc(x.local):""}</td>
- <td><span class="tag p-${x.priorite}">${PR[x.priorite]}</span></td><td><span class="tag s-${x.statut}">${ST[x.statut]}</span></td><td>${new Date(x.created_at).toLocaleDateString("fr-FR")}</td></tr>`).join("");
+ $("rows").innerHTML=list.map(x=>`<tr class="c ${rowCls(x)}" data-id="${x.id}"><td class="nw">${x.ref}</td><td class="tt">${esc(x.titre)}</td><td class="lc">${esc(siteN(x.site_id))} / ${esc(tribN(x.tribune_id))}${x.local?" / "+esc(x.local):""}</td>
+ <td class="nw"><span class="tag p-${x.priorite}">${PR[x.priorite]}</span></td><td class="nw"><span class="tag s-${x.statut}">${ST[x.statut]}</span></td><td class="nw">${new Date(x.created_at).toLocaleDateString("fr-FR")}</td></tr>`).join("");
 }
 ["fst","fp"].forEach(i=>$(i).onchange=render);$("fq").oninput=render;
 $("rows").onclick=e=>{const tr=e.target.closest("tr");if(tr)openDet(+tr.dataset.id)};
@@ -178,7 +191,7 @@ async function loadAdmin(){
  const dc=await sb.from("demandes_compte").select("*").order("created_at",{ascending:false});
  $("drows").innerHTML=(dc.data||[]).map(d=>{const a=d.statut==="en_attente";return `<tr><td>${esc(d.prenom)} ${esc(d.nom)}</td><td>${esc(d.societe)} – ${esc(d.fonction)}</td><td>${esc(d.email)}</td>
   <td>${a?`<select data-d="${d.id}" aria-label="Rôle à attribuer">${opts(ROLES)}</select>`:(d.statut==="approuvee"?"Approuvée : "+ROLES[d.role_prevu]:"Refusée")}</td>
-  <td>${a?`<button data-d="${d.id}" data-a="approuvee" data-e="${esc(d.email)}">Approuver</button> <button class="sec" data-d="${d.id}" data-a="refusee">Refuser</button>`:""}</td></tr>`}).join("")||`<tr><td colspan="5" class="empty">Aucune demande de compte.</td></tr>`;
+  <td>${a?`<button data-d="${d.id}" data-a="approuvee" data-e="${esc(d.email)}">Approuver</button> <button class="sec" data-d="${d.id}" data-a="refusee">Refuser</button>`:""} <button class="sec" data-d="${d.id}" data-a="suppr">Supprimer</button></td></tr>`}).join("")||`<tr><td colspan="5" class="empty">Aucune demande de compte.</td></tr>`;
  const {data}=await sb.from("profiles").select("*").order("created_at",{ascending:false});
  $("urows").innerHTML=(data||[]).map(u=>`<tr><td>${esc(u.prenom)} ${esc(u.nom)}</td><td>${esc(u.societe)} – ${esc(u.fonction)}</td><td>${esc(u.email)}</td>
   <td><select data-u="${u.id}" data-f="role">${opts(ROLES)}</select></td>
@@ -194,6 +207,9 @@ $("asb").onclick=()=>{if($("as").value.trim()){adm(sb.from("sites").insert({nom:
 $("atb").onclick=()=>{if($("atn").value.trim()&&$("at").value){adm(sb.from("tribunes").insert({site_id:$("at").value,nom:$("atn").value.trim()}));$("atn").value=""}};
 $("lists").onclick=e=>{const a=e.target.closest("[data-del]");if(a&&confirm("Supprimer cet élément ? Les tickets liés bloqueront la suppression."))adm(sb.from(a.dataset.del).delete().eq("id",a.dataset.id))};
 $("drows").onclick=async e=>{const b=e.target.closest("button");if(!b)return;
+ if(b.dataset.a==="suppr"){if(!confirm("Supprimer cette demande ? Le compte éventuellement déjà créé n'est pas touché."))return;
+  const {error}=await sb.from("demandes_compte").delete().eq("id",b.dataset.d);
+  $("cmsg").style.color=error?"":"var(--ok)";$("cmsg").textContent=error?"Suppression impossible : "+error.message:"Demande supprimée.";loadAdmin();return}
  const sel=document.querySelector(`select[data-d="${b.dataset.d}"]`);
  const {error}=await sb.from("demandes_compte").update({statut:b.dataset.a,role_prevu:sel.value}).eq("id",b.dataset.d);
  $("cmsg").style.color=error?"":"var(--ok)";
@@ -203,5 +219,41 @@ $("pwok").onclick=async()=>{if($("np1").value.length<8){$("pmsg").textContent="8
  const {error}=await sb.auth.updateUser({password:$("np1").value});
  if(error){$("pmsg").textContent="Enregistrement impossible : "+error.message;return}
  $("dPw").close();history.replaceState(null,"",location.pathname)};
+const filt={};let sort={k:null,d:1},lastBase=[];
+const COLS={
+ ref:{l:"N°",v:x=>x.ref,k:x=>{const [a,b,c]=x.ref.split("-").map(Number);return a*1e8+b*1e6+c}},
+ titre:{l:"Ticket",v:x=>x.titre,k:x=>x.titre.toLowerCase()},
+ lieu:{l:"Site / tribune / local",v:x=>`${siteN(x.site_id)} / ${tribN(x.tribune_id)}${x.local?" / "+x.local:""}`,k:x=>`${siteN(x.site_id)} ${tribN(x.tribune_id)} ${x.local||""}`.toLowerCase()},
+ priorite:{l:"Priorité",v:x=>PR[x.priorite],k:x=>["urgente","haute","normale","basse"].indexOf(x.priorite)},
+ statut:{l:"Statut",v:x=>ST[x.statut],k:x=>Object.keys(ST).indexOf(x.statut)},
+ date:{l:"Créé le",v:x=>new Date(x.created_at).toLocaleDateString("fr-FR"),k:x=>+new Date(x.created_at)}};
+const done=x=>["resolue","archivee"].includes(x.statut);
+const rowCls=x=>(x.statut==="nouvelle"?"new ":"")+(x.priorite==="urgente"&&!done(x)?"urg ":"")+(done(x)?"res":"");
+function sortFilt(l){
+ l=l.filter(x=>Object.entries(filt).every(([k,s])=>s.has(COLS[k].v(x))));
+ if(!sort.k)return l;const f=COLS[sort.k].k;
+ return [...l].sort((a,b)=>((f(a)>f(b))-(f(a)<f(b)))*sort.d)}
+function head(){$("hr").innerHTML=Object.entries(COLS).map(([k,c])=>`<th aria-sort="${sort.k===k?(sort.d>0?"ascending":"descending"):"none"}"><button class="hb" data-s="${k}">${c.l}${sort.k===k?(sort.d>0?" ▲":" ▼"):""}</button><button class="hf${filt[k]?" on":""}" data-f="${k}" aria-label="Filtrer la colonne ${c.l}">${filt[k]?"⧩":"▾"}</button></th>`).join("")}
+$("hr").onclick=e=>{const b=e.target.closest("button");if(!b)return;
+ if(b.dataset.s){sort=sort.k===b.dataset.s?{k:sort.k,d:-sort.d}:{k:b.dataset.s,d:1};render()}else openPop(b.dataset.f,b)};
+function openPop(k,btn){
+ const c=COLS[k],o=lastBase.filter(x=>Object.entries(filt).every(([j,s])=>j===k||s.has(COLS[j].v(x)))).sort((a,b)=>(c.k(a)>c.k(b))-(c.k(a)<c.k(b)));
+ const vals=[...new Set(o.map(c.v))],cur=filt[k]||new Set(vals),p=$("pop");p.dataset.k=k;
+ p.innerHTML=`<button class="sec pb" data-o="asc">Trier du plus petit au plus grand (A → Z)</button><button class="sec pb" data-o="desc">Trier du plus grand au plus petit (Z → A)</button>
+ <input id="pq" placeholder="Rechercher" aria-label="Rechercher dans les valeurs">
+ <label class="ck"><input type="checkbox" id="pall"${vals.every(v=>cur.has(v))?" checked":""}> (Tout sélectionner)</label>
+ <div id="pl">${vals.map(v=>`<label class="ck"><input type="checkbox" data-v="${esc(v)}"${cur.has(v)?" checked":""}> ${esc(v)}</label>`).join("")}</div>
+ <button class="sec pb" data-o="clear">Effacer le filtre de cette colonne</button>`;
+ const r=btn.getBoundingClientRect();p.style.top=(r.bottom+scrollY+4)+"px";p.style.left=Math.max(8,Math.min(r.left+scrollX,innerWidth-275))+"px";p.classList.remove("hide")}
+$("pop").onclick=e=>{const b=e.target.closest("button");if(!b)return;const k=$("pop").dataset.k;
+ if(b.dataset.o==="clear")delete filt[k];else sort={k,d:b.dataset.o==="asc"?1:-1};
+ $("pop").classList.add("hide");render()};
+$("pop").onchange=e=>{const k=$("pop").dataset.k,bx=[...document.querySelectorAll("#pl input")];
+ if(e.target.id==="pall")bx.forEach(b=>b.checked=e.target.checked);
+ if(bx.every(b=>b.checked))delete filt[k];else filt[k]=new Set(bx.filter(b=>b.checked).map(b=>b.dataset.v));
+ $("pall").checked=bx.every(b=>b.checked);render()};
+$("pop").oninput=e=>{if(e.target.id!=="pq")return;const q=e.target.value.toLowerCase();
+ document.querySelectorAll("#pl label").forEach(l=>l.classList.toggle("hide",!l.textContent.toLowerCase().includes(q)))};
+document.addEventListener("click",e=>{if(!e.target.closest("#pop,.hf"))$("pop").classList.add("hide")});
 start();
 </script></body></html>
