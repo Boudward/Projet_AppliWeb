@@ -1,224 +1,188 @@
 <!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Travaux & maintenance</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0/dist/umd/supabase.min.js"></script>
 <style>
-:root{--bg:#eef1f3;--panel:#fff;--ink:#1c2b33;--mute:#5d6e77;--line:#d3dadf;--accent:#0d5c63;--warn:#c8641b;--bad:#b3261e;--ok:#2f7d4f;font-family:"Segoe UI",system-ui,sans-serif}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-size:15px}
-header{background:var(--accent);color:#fff;padding:12px 20px;display:flex;gap:16px;align-items:center;justify-content:space-between}
-header h1{font-size:18px;margin:0;font-weight:600}
+:root{--bg:#eef1f3;--ink:#1c2b33;--mute:#5d6e77;--line:#d3dadf;--accent:#0d5c63;--warn:#c8641b;--bad:#b3261e;--ok:#2f7d4f;font-family:"Segoe UI",system-ui,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-size:15px}
+header{background:var(--accent);color:#fff;padding:10px 20px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+header h1{font-size:18px;margin:0}header div{display:flex;gap:8px;align-items:center}
 main{max-width:1100px;margin:0 auto;padding:20px}
 button,input,select,textarea{font:inherit;color:inherit}
 button{background:var(--accent);color:#fff;border:0;border-radius:4px;padding:8px 14px;cursor:pointer}
 button.sec{background:transparent;color:var(--accent);border:1px solid var(--accent)}
-header button{background:#fff;color:var(--accent)}
-button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--warn);outline-offset:1px}
+header button{background:#fff;color:var(--accent)}header select{width:auto}
+:focus-visible{outline:2px solid var(--warn);outline-offset:1px}
 input,select,textarea{border:1px solid var(--line);border-radius:4px;padding:7px 9px;background:#fff;width:100%}
 label{display:block;font-size:13px;color:var(--mute);margin:10px 0 3px}
-.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:14px}
-.bar>*{flex:1 1 150px}.bar .btn{flex:0 0 auto}
-.stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
-.stat{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:8px 14px;min-width:110px}
-.stat b{font-size:22px;display:block}
-.stat span{color:var(--mute);font-size:13px}
-.table{background:var(--panel);border:1px solid var(--line);border-radius:4px;overflow-x:auto}
-table{border-collapse:collapse;width:100%;min-width:720px}
-th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line)}
-th{font-size:13px;color:var(--mute);font-weight:600}
-tbody tr{cursor:pointer}tbody tr:hover{background:#f5f8f9}
-.tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:12px;border:1px solid currentColor}
-.p-urgente{color:var(--bad)}.p-haute{color:var(--warn)}.p-normale,.p-basse{color:var(--mute)}
-.s-resolue,.s-cloturee{color:var(--ok)}.s-en_cours{color:var(--accent)}.s-en_attente{color:var(--warn)}.s-nouvelle{color:var(--ink)}
-dialog{border:0;border-radius:6px;padding:20px;width:min(560px,94vw);box-shadow:0 8px 30px #0004}
-dialog::backdrop{background:#0006}
-.row{display:flex;gap:10px}.row>*{flex:1}
-.msg{color:var(--bad);font-size:13px;min-height:18px}
-.suivi{border-left:3px solid var(--line);padding:4px 10px;margin:8px 0;font-size:14px}
-.suivi small{color:var(--mute)}
-.empty{padding:30px;text-align:center;color:var(--mute)}
-#login{max-width:360px;margin:60px auto;background:var(--panel);padding:24px;border-radius:6px;border:1px solid var(--line)}
-.hide{display:none!important}
-</style>
-</head>
-<body>
-<header><h1>Travaux & maintenance</h1><button id="out" class="hide">Se déconnecter</button></header>
+.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:14px}.bar>*{flex:1 1 140px}.bar .btn{flex:0 0 auto}
+.panel,.table{background:#fff;border:1px solid var(--line);border-radius:4px}.table{overflow-x:auto}.panel{padding:14px;margin-bottom:14px}
+table{border-collapse:collapse;width:100%;min-width:700px}th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--line)}
+th{font-size:13px;color:var(--mute)}tbody tr.c{cursor:pointer}tbody tr.c:hover{background:#f5f8f9}
+.tag{padding:2px 8px;border-radius:10px;font-size:12px;border:1px solid currentColor}
+.p-urgente,.off{color:var(--bad)}.p-haute,.s-en_attente{color:var(--warn)}.p-normale,.p-basse{color:var(--mute)}.s-resolue,.s-archivee,.on{color:var(--ok)}.s-en_cours{color:var(--accent)}
+dialog{border:0;border-radius:6px;padding:20px;width:min(560px,94vw);box-shadow:0 8px 30px #0004}dialog::backdrop{background:#0006}
+.row{display:flex;gap:10px}.row>*{flex:1}.msg{color:var(--bad);font-size:13px;min-height:18px}
+.suivi{border-left:3px solid var(--line);padding:4px 10px;margin:8px 0;font-size:14px}.suivi small{color:var(--mute)}
+.empty{padding:24px;text-align:center;color:var(--mute)}
+#login{max-width:400px;margin:40px auto;background:#fff;padding:24px;border-radius:6px;border:1px solid var(--line)}
+.hide{display:none!important}a.lnk{color:var(--accent);cursor:pointer;text-decoration:underline}
+</style></head><body>
+<header><h1>Travaux & maintenance</h1><div id="hd" class="hide">
+ <span id="who"></span>
+ <select id="vas" class="hide" aria-label="Voir en tant que"><option value="">Vue admin</option><option value="demandeur">Voir en tant que Demandeur</option><option value="responsable">Voir en tant que Responsable</option><option value="agent">Voir en tant que Agent</option></select>
+ <button id="adm" class="hide">Console admin</button><button id="out">Se déconnecter</button></div></header>
 
 <section id="login">
-  <h2 style="margin-top:0">Connexion</h2>
-  <label for="em">Adresse e-mail</label><input id="em" type="email" autocomplete="username">
-  <label for="pw">Mot de passe</label><input id="pw" type="password" autocomplete="current-password">
-  <p class="msg" id="lmsg"></p>
-  <button id="go">Se connecter</button>
+ <h2 id="lt" style="margin-top:0">Connexion</h2>
+ <div id="sg" class="hide"><div class="row"><div><label for="sn">Nom</label><input id="sn"></div><div><label for="sp">Prénom</label><input id="sp"></div></div>
+ <div class="row"><div><label for="ss">Société</label><input id="ss"></div><div><label for="sf">Fonction</label><input id="sf"></div></div></div>
+ <label for="em">Adresse e-mail</label><input id="em" type="email" autocomplete="username">
+ <label for="pw">Mot de passe</label><input id="pw" type="password" autocomplete="current-password">
+ <p class="msg" id="lmsg"></p>
+ <button id="go">Se connecter</button> <a class="lnk" id="tog">Demander un compte</a>
 </section>
 
 <main id="app" class="hide">
-  <div class="stats" id="stats"></div>
+ <div id="pending" class="panel hide">Votre compte est en attente d'activation par l'administrateur.</div>
+ <div id="tk" class="hide">
   <div class="bar">
-    <div><label for="fb">Bâtiment</label><select id="fb"></select></div>
-    <div><label for="fs">Statut</label><select id="fs"></select></div>
-    <div><label for="fp">Priorité</label><select id="fp"></select></div>
-    <div><label for="fq">Recherche</label><input id="fq" placeholder="Titre, local, demandeur"></div>
-    <button class="btn" id="new">Nouvelle demande</button>
-    <button class="btn sec" id="newb">Ajouter un bâtiment</button>
-  </div>
-  <div class="table">
-    <table><thead><tr><th>N°</th><th>Demande</th><th>Bâtiment / local</th><th>Priorité</th><th>Statut</th><th>Créée le</th></tr></thead>
-    <tbody id="rows"></tbody></table>
-    <div id="empty" class="empty hide">Aucune demande ne correspond à ces filtres.</div>
-  </div>
+   <div><label for="fs">Site</label><select id="fs"></select></div><div><label for="ft">Tribune</label><select id="ft"></select></div>
+   <div><label for="fst">Statut</label><select id="fst"></select></div><div><label for="fp">Priorité</label><select id="fp"></select></div>
+   <div><label for="fq">Recherche</label><input id="fq" placeholder="N°, titre, local"></div>
+   <button class="btn" id="new">Nouveau ticket</button></div>
+  <div class="table"><table><thead><tr><th>N°</th><th>Ticket</th><th>Site / tribune / local</th><th>Priorité</th><th>Statut</th><th>Créé le</th></tr></thead><tbody id="rows"></tbody></table>
+  <div id="empty" class="empty hide">Aucun ticket ne correspond à ces filtres.</div></div>
+  <p class="empty hide" id="agentmsg">Les interventions arriveront à l'étape suivante : cet espace est réservé aux agents.</p>
+ </div>
+ <div id="ad" class="hide">
+  <div class="panel"><h3 style="margin-top:0">Utilisateurs</h3><div class="table"><table><thead><tr><th>Nom</th><th>Société / fonction</th><th>E-mail</th><th>Rôle</th><th>Compte</th></tr></thead><tbody id="urows"></tbody></table></div></div>
+  <div class="panel"><h3 style="margin-top:0">Sites et tribunes</h3>
+   <div class="row"><input id="as" placeholder="Nom du nouveau site"><button id="asb">Ajouter le site</button></div>
+   <div class="row" style="margin-top:8px"><select id="at"></select><input id="atn" placeholder="Nom de la nouvelle tribune"><button id="atb">Ajouter la tribune</button></div>
+   <div id="lists" style="margin-top:12px"></div><p class="msg" id="amsg"></p></div>
+ </div>
 </main>
 
-<dialog id="dNew"><form method="dialog" id="fNew" style="margin:0">
-  <h2 style="margin-top:0">Nouvelle demande</h2>
-  <div class="row"><div><label for="nb">Bâtiment</label><select id="nb"></select></div><div><label for="nl">Local / zone</label><input id="nl"></div></div>
-  <label for="nt">Titre</label><input id="nt" required>
-  <label for="nd">Description</label><textarea id="nd" rows="3"></textarea>
-  <div class="row"><div><label for="np">Priorité</label><select id="np"></select></div><div><label for="nr">Demandeur</label><input id="nr"></div></div>
-  <p class="msg" id="nmsg"></p>
-  <div class="row"><button type="submit">Enregistrer la demande</button><button type="button" class="sec" data-close>Annuler</button></div>
-</form></dialog>
+<dialog id="dNew"><form id="fNew" style="margin:0"><h2 style="margin-top:0">Nouveau ticket</h2>
+ <div class="row"><div><label for="ns">Site (obligatoire)</label><select id="ns" required></select></div><div><label for="nt2">Tribune (obligatoire)</label><select id="nt2" required></select></div></div>
+ <label for="nl">Local (facultatif, recommandé)</label><input id="nl">
+ <label for="nt">Titre</label><input id="nt" required>
+ <label for="nd">Description</label><textarea id="nd" rows="3"></textarea>
+ <label for="np">Priorité</label><select id="np"></select>
+ <p class="msg" id="nmsg"></p><div class="row"><button type="submit">Enregistrer le ticket</button><button type="button" class="sec" data-close>Annuler</button></div></form></dialog>
 
-<dialog id="dB"><form method="dialog" id="fB" style="margin:0">
-  <h2 style="margin-top:0">Ajouter un bâtiment</h2>
-  <label for="bn">Nom</label><input id="bn" required>
-  <label for="ba">Adresse</label><input id="ba">
-  <p class="msg" id="bmsg"></p>
-  <div class="row"><button type="submit">Ajouter le bâtiment</button><button type="button" class="sec" data-close>Annuler</button></div>
-</form></dialog>
-
-<dialog id="dDet">
-  <h2 id="dt" style="margin-top:0"></h2>
-  <p id="dm" style="color:var(--mute);margin:0 0 8px"></p>
-  <p id="dd"></p>
-  <div class="row"><div><label for="ds">Statut</label><select id="ds"></select></div><div><label for="da">Assignée à</label><input id="da"></div></div>
-  <button id="dsave" style="margin-top:10px">Enregistrer les modifications</button>
-  <h3>Suivi</h3><div id="dlog"></div>
-  <label for="dmsg">Ajouter une note</label><textarea id="dmsg" rows="2"></textarea>
-  <p class="msg" id="dermsg"></p>
-  <div class="row" style="margin-top:8px"><button id="dnote">Ajouter la note</button><button class="sec" data-close>Fermer</button></div>
-</dialog>
+<dialog id="dDet"><h2 id="dt" style="margin-top:0"></h2><p id="dm" style="color:var(--mute);margin:0 0 8px"></p><p id="dd"></p>
+ <div id="dedit"><label for="ds">Statut</label><select id="ds"></select><button id="dsave" style="margin-top:8px">Enregistrer le statut</button>
+ <h3>Suivi</h3><div id="dlog"></div><label for="dmsg">Ajouter une note</label><textarea id="dmsg" rows="2"></textarea>
+ <button id="dnote" style="margin-top:8px">Ajouter la note</button></div>
+ <p class="msg" id="dermsg"></p><button class="sec" data-close>Fermer</button></dialog>
 
 <script>
-// ====== À RENSEIGNER (Supabase > Project Settings > API) ======
-const SUPABASE_URL = "https://iflehvsemyyyofkwpezv.supabase.co";
-const SUPABASE_KEY = "sb_publishable_TupRcFtwtofGhLlz8hwVxg_O8xAQzTx";
-// ==============================================================
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const sb = supabase.createClient("https://VOTRE-PROJET.supabase.co", "VOTRE_CLE_ANON_PUBLIQUE"); // Project Settings > API (clé anon)
 const $ = id => document.getElementById(id);
-const STATUTS = {nouvelle:"Nouvelle",en_cours:"En cours",en_attente:"En attente",resolue:"Résolue",cloturee:"Clôturée"};
-const PRIOS = {basse:"Basse",normale:"Normale",haute:"Haute",urgente:"Urgente"};
-let bats = [], dem = [], cur = null, user = null;
-const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const opts = (o, all) => (all ? `<option value="">${all}</option>` : "") + Object.entries(o).map(([k,v]) => `<option value="${k}">${v}</option>`).join("");
-const batName = id => (bats.find(b => b.id === id) || {}).nom || "Sans bâtiment";
+const ST = {nouvelle:"Nouveau",en_cours:"En cours",en_attente:"En attente",resolue:"Résolu",archivee:"Archivé"};
+const PR = {basse:"Basse",normale:"Normale",haute:"Haute",urgente:"Urgente"};
+const ROLES = {demandeur:"Demandeur",responsable:"Responsable",agent:"Agent",admin:"Admin"};
+let me, sites=[], trib=[], tk=[], cur, signup=false, view="";
+const esc = s => String(s??"").replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const opts = (o,all)=>(all?`<option value="">${all}</option>`:"")+Object.entries(o).map(([k,v])=>`<option value="${k}">${v}</option>`).join("");
+const sOpts = (all)=>(all?`<option value="">${all}</option>`:"")+sites.map(s=>`<option value="${s.id}">${esc(s.nom)}</option>`).join("");
+const tOpts = (sid,all)=>(all?`<option value="">${all}</option>`:"")+trib.filter(t=>!sid||t.site_id==sid).map(t=>`<option value="${t.id}">${esc(t.nom)}</option>`).join("");
+const siteN = id=>(sites.find(s=>s.id==id)||{}).nom||"?", tribN = id=>(trib.find(t=>t.id==id)||{}).nom||"?";
+const role = ()=> me.role==="admin" && view ? view : me.role;
+$("fst").innerHTML=opts(ST,"Tous les statuts"); $("fp").innerHTML=opts(PR,"Toutes les priorités"); $("np").innerHTML=opts(PR); $("np").value="normale"; $("ds").innerHTML=opts(ST);
+document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>b.closest("dialog").close());
 
-$("fs").innerHTML = opts(STATUTS, "Tous les statuts");
-$("fp").innerHTML = opts(PRIOS, "Toutes les priorités");
-$("np").innerHTML = opts(PRIOS); $("np").value = "normale";
-$("ds").innerHTML = opts(STATUTS);
-document.querySelectorAll("[data-close]").forEach(b => b.onclick = () => b.closest("dialog").close());
+$("tog").onclick=()=>{signup=!signup;$("sg").classList.toggle("hide",!signup);$("lt").textContent=signup?"Demande de création de compte":"Connexion";
+ $("go").textContent=signup?"Envoyer la demande":"Se connecter";$("tog").textContent=signup?"J'ai déjà un compte":"Demander un compte";$("lmsg").textContent=""};
+$("go").onclick=async()=>{
+ const email=$("em").value,password=$("pw").value;
+ if(signup){
+  if(![$("sn"),$("sp"),$("ss"),$("sf"),$("em"),$("pw")].every(i=>i.value.trim())){$("lmsg").textContent="Renseignez tous les champs.";return}
+  const {error}=await sb.auth.signUp({email,password,options:{data:{nom:$("sn").value,prenom:$("sp").value,societe:$("ss").value,fonction:$("sf").value}}});
+  if(error){$("lmsg").textContent="Demande impossible : "+error.message;return}
+  $("lmsg").style.color="var(--ok)";$("lmsg").textContent="Demande envoyée. Vous pourrez vous connecter dès que l'administrateur aura activé votre compte.";await sb.auth.signOut();return}
+ const {error}=await sb.auth.signInWithPassword({email,password});
+ if(error)$("lmsg").textContent="Connexion impossible : vérifiez l'e-mail et le mot de passe.";else start()};
+$("out").onclick=async()=>{await sb.auth.signOut();location.reload()};
 
-async function start() {
-  const { data } = await sb.auth.getSession();
-  user = data.session && data.session.user;
-  $("login").classList.toggle("hide", !!user);
-  $("app").classList.toggle("hide", !user);
-  $("out").classList.toggle("hide", !user);
-  if (user) load();
+async function start(){
+ const {data}=await sb.auth.getSession(); if(!data.session)return;
+ const p=await sb.from("profiles").select("*").eq("id",data.session.user.id).single(); me=p.data;
+ $("login").classList.add("hide");$("app").classList.remove("hide");$("hd").classList.remove("hide");
+ $("who").textContent=`${me.prenom||""} ${me.nom||""} · ${ROLES[me.role]}`;
+ $("vas").classList.toggle("hide",me.role!=="admin");$("adm").classList.toggle("hide",me.role!=="admin");
+ if(!me.actif){$("pending").classList.remove("hide");return}
+ await load();
 }
-$("go").onclick = async () => {
-  const { error } = await sb.auth.signInWithPassword({ email: $("em").value, password: $("pw").value });
-  if (error) $("lmsg").textContent = "Connexion impossible : vérifiez l'e-mail et le mot de passe."; else start();
-};
-$("out").onclick = async () => { await sb.auth.signOut(); start(); };
+$("vas").onchange=()=>{view=$("vas").value;render()};
+$("adm").onclick=()=>{const on=$("ad").classList.toggle("hide");$("tk").classList.toggle("hide",!on);$("adm").textContent=on?"Console admin":"Retour aux tickets";if(!on)loadAdmin()};
 
-async function load() {
-  const [b, d] = await Promise.all([
-    sb.from("batiments").select("*").order("nom"),
-    sb.from("demandes").select("*").order("created_at", { ascending: false })
-  ]);
-  if (b.error || d.error) { alert("Erreur de chargement : " + (b.error || d.error).message); return; }
-  bats = b.data; dem = d.data;
-  const sel = $("fb").value;
-  $("fb").innerHTML = `<option value="">Tous les bâtiments</option>` + bats.map(x => `<option value="${x.id}">${esc(x.nom)}</option>`).join("");
-  $("fb").value = sel;
-  $("nb").innerHTML = bats.map(x => `<option value="${x.id}">${esc(x.nom)}</option>`).join("");
-  render();
+async function load(){
+ const [s,t,k]=await Promise.all([sb.from("sites").select("*").order("nom"),sb.from("tribunes").select("*").order("nom"),sb.from("tickets").select("*").order("created_at",{ascending:false})]);
+ if(s.error||t.error||k.error){alert("Erreur de chargement : "+(s.error||t.error||k.error).message);return}
+ sites=s.data;trib=t.data;tk=k.data;
+ const a=$("fs").value;$("fs").innerHTML=sOpts("Tous les sites");$("fs").value=a;fillT();
+ $("ns").innerHTML=sOpts();$("nt2").innerHTML=tOpts($("ns").value);
+ render();
 }
+function fillT(){const a=$("ft").value;$("ft").innerHTML=tOpts($("fs").value,"Toutes les tribunes");$("ft").value=a}
+$("fs").onchange=()=>{fillT();render()};$("ns").onchange=()=>$("nt2").innerHTML=tOpts($("ns").value);
 
-function render() {
-  const q = $("fq").value.toLowerCase();
-  const list = dem.filter(x =>
-    (!$("fb").value || String(x.batiment_id) === $("fb").value) &&
-    (!$("fs").value || x.statut === $("fs").value) &&
-    (!$("fp").value || x.priorite === $("fp").value) &&
-    (!q || [x.titre, x.local, x.demandeur].join(" ").toLowerCase().includes(q)));
-  const ouvertes = dem.filter(x => !["resolue","cloturee"].includes(x.statut));
-  $("stats").innerHTML = [
-    ["Ouvertes", ouvertes.length], ["Urgentes ouvertes", ouvertes.filter(x => x.priorite === "urgente").length],
-    ["En attente", dem.filter(x => x.statut === "en_attente").length], ["Résolues", dem.filter(x => x.statut === "resolue" || x.statut === "cloturee").length]
-  ].map(([l, n]) => `<div class="stat"><b>${n}</b><span>${l}</span></div>`).join("");
-  $("empty").classList.toggle("hide", list.length > 0);
-  $("rows").innerHTML = list.map(x => `<tr data-id="${x.id}">
-    <td>${x.id}</td><td>${esc(x.titre)}</td><td>${esc(batName(x.batiment_id))}${x.local ? " – " + esc(x.local) : ""}</td>
-    <td><span class="tag p-${x.priorite}">${PRIOS[x.priorite]}</span></td>
-    <td><span class="tag s-${x.statut}">${STATUTS[x.statut]}</span></td>
-    <td>${new Date(x.created_at).toLocaleDateString("fr-FR")}</td></tr>`).join("");
+function render(){
+ const r=role(),isAgent=r==="agent";
+ $("tk").classList.remove("hide");$("ad").classList.add("hide");$("adm").textContent="Console admin";
+ document.querySelector("#tk .bar").classList.toggle("hide",isAgent);document.querySelector("#tk .table").classList.toggle("hide",isAgent);$("agentmsg").classList.toggle("hide",!isAgent);
+ $("new").classList.toggle("hide",isAgent);
+ const q=$("fq").value.toLowerCase();
+ const list=tk.filter(x=>(r!=="demandeur"||(x.demandeur_id===me.id&&x.statut!=="archivee"))&&
+  (!$("fs").value||x.site_id==$("fs").value)&&(!$("ft").value||x.tribune_id==$("ft").value)&&(!$("fst").value||x.statut===$("fst").value)&&(!$("fp").value||x.priorite===$("fp").value)&&
+  (!q||[x.ref,x.titre,x.local].join(" ").toLowerCase().includes(q)));
+ $("empty").classList.toggle("hide",list.length>0);
+ $("rows").innerHTML=list.map(x=>`<tr class="c" data-id="${x.id}"><td>${x.ref}</td><td>${esc(x.titre)}</td><td>${esc(siteN(x.site_id))} / ${esc(tribN(x.tribune_id))}${x.local?" / "+esc(x.local):""}</td>
+ <td><span class="tag p-${x.priorite}">${PR[x.priorite]}</span></td><td><span class="tag s-${x.statut}">${ST[x.statut]}</span></td><td>${new Date(x.created_at).toLocaleDateString("fr-FR")}</td></tr>`).join("");
 }
-["fb","fs","fp"].forEach(i => $(i).onchange = render);
-$("fq").oninput = render;
-$("rows").onclick = e => { const tr = e.target.closest("tr"); if (tr) openDet(+tr.dataset.id); };
+["fst","fp"].forEach(i=>$(i).onchange=render);$("fq").oninput=render;
+$("rows").onclick=e=>{const tr=e.target.closest("tr");if(tr)openDet(+tr.dataset.id)};
 
-$("new").onclick = () => { $("fNew").reset(); $("np").value = "normale"; $("nmsg").textContent = ""; $("nr").value = user.email; $("dNew").showModal(); };
-$("fNew").onsubmit = async e => {
-  e.preventDefault();
-  const { error } = await sb.from("demandes").insert({
-    batiment_id: $("nb").value || null, local: $("nl").value, titre: $("nt").value,
-    description: $("nd").value, priorite: $("np").value, demandeur: $("nr").value });
-  if (error) { $("nmsg").textContent = "Enregistrement impossible : " + error.message; return; }
-  $("dNew").close(); load();
-};
+$("new").onclick=()=>{$("fNew").reset();$("np").value="normale";$("nt2").innerHTML=tOpts($("ns").value);$("nmsg").textContent="";$("dNew").showModal()};
+$("fNew").onsubmit=async e=>{e.preventDefault();
+ if(!$("ns").value||!$("nt2").value){$("nmsg").textContent="Site et tribune sont obligatoires.";return}
+ const {error}=await sb.from("tickets").insert({site_id:$("ns").value,tribune_id:$("nt2").value,local:$("nl").value||null,titre:$("nt").value,description:$("nd").value,priorite:$("np").value});
+ if(error){$("nmsg").textContent="Enregistrement impossible : "+error.message;return}
+ $("dNew").close();load()};
 
-$("newb").onclick = () => { $("fB").reset(); $("bmsg").textContent = ""; $("dB").showModal(); };
-$("fB").onsubmit = async e => {
-  e.preventDefault();
-  const { error } = await sb.from("batiments").insert({ nom: $("bn").value, adresse: $("ba").value });
-  if (error) { $("bmsg").textContent = "Ajout impossible : " + error.message; return; }
-  $("dB").close(); load();
-};
-
-async function openDet(id) {
-  cur = dem.find(x => x.id === id);
-  $("dt").textContent = `#${cur.id} – ${cur.titre}`;
-  $("dm").textContent = `${batName(cur.batiment_id)}${cur.local ? " – " + cur.local : ""} · demandée par ${cur.demandeur || "inconnu"} le ${new Date(cur.created_at).toLocaleDateString("fr-FR")}`;
-  $("dd").textContent = cur.description || "Aucune description.";
-  $("ds").value = cur.statut; $("da").value = cur.assigne_a || ""; $("dmsg").value = ""; $("dermsg").textContent = "";
-  $("dDet").showModal(); loadLog();
+async function openDet(id){
+ cur=tk.find(x=>x.id===id);const canEdit=["responsable","admin"].includes(role());
+ $("dt").textContent=`${cur.ref} – ${cur.titre}`;
+ $("dm").textContent=`${siteN(cur.site_id)} / ${tribN(cur.tribune_id)}${cur.local?" / "+cur.local:""} · ${new Date(cur.created_at).toLocaleDateString("fr-FR")}`;
+ $("dd").textContent=cur.description||"Aucune description.";$("ds").value=cur.statut;$("dmsg").value="";$("dermsg").textContent="";
+ $("dedit").classList.toggle("hide",!canEdit);$("dDet").showModal();if(canEdit)loadLog();
 }
-async function loadLog() {
-  const { data } = await sb.from("suivi").select("*").eq("demande_id", cur.id).order("created_at");
-  $("dlog").innerHTML = (data || []).map(s => `<div class="suivi">${esc(s.message)}<br><small>${esc(s.auteur)} – ${new Date(s.created_at).toLocaleString("fr-FR")}</small></div>`).join("") || `<p class="empty" style="padding:8px">Aucune note pour l'instant.</p>`;
+async function loadLog(){const {data}=await sb.from("ticket_suivi").select("*").eq("ticket_id",cur.id).order("created_at");
+ $("dlog").innerHTML=(data||[]).map(s=>`<div class="suivi">${esc(s.message)}<br><small>${esc(s.auteur)} – ${new Date(s.created_at).toLocaleString("fr-FR")}</small></div>`).join("")||`<p class="empty" style="padding:8px">Aucune note pour l'instant.</p>`}
+const note=m=>sb.from("ticket_suivi").insert({ticket_id:cur.id,auteur:`${me.prenom} ${me.nom}`,message:m});
+$("dsave").onclick=async()=>{const s=$("ds").value;const {error}=await sb.from("tickets").update({statut:s}).eq("id",cur.id);
+ if(error){$("dermsg").textContent="Modification impossible : "+error.message;return}
+ if(s!==cur.statut)await note(`Statut changé : ${ST[cur.statut]} → ${ST[s]}`);cur.statut=s;await load();loadLog()};
+$("dnote").onclick=async()=>{const m=$("dmsg").value.trim();if(!m)return;const {error}=await note(m);
+ if(error){$("dermsg").textContent="Note non enregistrée : "+error.message;return}$("dmsg").value="";loadLog()};
+
+async function loadAdmin(){
+ const {data}=await sb.from("profiles").select("*").order("created_at",{ascending:false});
+ $("urows").innerHTML=(data||[]).map(u=>`<tr><td>${esc(u.prenom)} ${esc(u.nom)}</td><td>${esc(u.societe)} – ${esc(u.fonction)}</td><td>${esc(u.email)}</td>
+  <td><select data-u="${u.id}" data-f="role">${opts(ROLES)}</select></td>
+  <td><button class="sec" data-u="${u.id}" data-f="actif" data-v="${!u.actif}"><span class="${u.actif?"on":"off"}">${u.actif?"Actif – désactiver":"Inactif – activer"}</span></button></td></tr>`).join("");
+ (data||[]).forEach(u=>{const s=document.querySelector(`select[data-u="${u.id}"]`);if(s)s.value=u.role});
+ $("at").innerHTML=sOpts();
+ $("lists").innerHTML=sites.map(s=>`<p><b>${esc(s.nom)}</b> <a class="lnk" data-del="sites" data-id="${s.id}">supprimer</a><br>${trib.filter(t=>t.site_id===s.id).map(t=>`${esc(t.nom)} <a class="lnk" data-del="tribunes" data-id="${t.id}">supprimer</a>`).join(" · ")||"Aucune tribune"}</p>`).join("");
 }
-async function note(msg) { return sb.from("suivi").insert({ demande_id: cur.id, auteur: user.email, message: msg }); }
-$("dsave").onclick = async () => {
-  const upd = { statut: $("ds").value, assigne_a: $("da").value || null };
-  upd.resolue_at = ["resolue","cloturee"].includes(upd.statut) ? new Date().toISOString() : null;
-  const { error } = await sb.from("demandes").update(upd).eq("id", cur.id);
-  if (error) { $("dermsg").textContent = "Modification impossible : " + error.message; return; }
-  if (upd.statut !== cur.statut) await note(`Statut changé : ${STATUTS[cur.statut]} → ${STATUTS[upd.statut]}`);
-  Object.assign(cur, upd); await load(); loadLog(); $("dermsg").textContent = "";
-};
-$("dnote").onclick = async () => {
-  if (!$("dmsg").value.trim()) return;
-  const { error } = await note($("dmsg").value.trim());
-  if (error) { $("dermsg").textContent = "Note non enregistrée : " + error.message; return; }
-  $("dmsg").value = ""; loadLog();
-};
+async function adm(p){const {error}=await p;$("amsg").textContent=error?"Action impossible : "+error.message:"";await load();loadAdmin()}
+$("urows").onchange=e=>{const t=e.target;adm(sb.from("profiles").update({role:t.value}).eq("id",t.dataset.u))};
+$("urows").onclick=e=>{const b=e.target.closest("button");if(b)adm(sb.from("profiles").update({actif:b.dataset.v==="true"}).eq("id",b.dataset.u))};
+$("asb").onclick=()=>{if($("as").value.trim()){adm(sb.from("sites").insert({nom:$("as").value.trim()}));$("as").value=""}};
+$("atb").onclick=()=>{if($("atn").value.trim()&&$("at").value){adm(sb.from("tribunes").insert({site_id:$("at").value,nom:$("atn").value.trim()}));$("atn").value=""}};
+$("lists").onclick=e=>{const a=e.target.closest("[data-del]");if(a&&confirm("Supprimer cet élément ? Les tickets liés bloqueront la suppression."))adm(sb.from(a.dataset.del).delete().eq("id",a.dataset.id))};
 start();
-</script>
-</body>
-</html>
+</script></body></html>
