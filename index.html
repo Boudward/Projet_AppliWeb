@@ -79,7 +79,9 @@ dialog{border:0;border-radius:6px;padding:20px;width:min(560px,94vw);box-shadow:
  <p class="msg" id="dermsg"></p><button class="sec" data-close>Fermer</button></dialog>
 
 <script>
-const sb = supabase.createClient("https://VOTRE-PROJET.supabase.co", "VOTRE_CLE_ANON_PUBLIQUE"); // Project Settings > API (clé anon)
+const SUPABASE_URL = 'https://iflehvsemyyyofkwpezv.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_TupRcFtwtofGhLlz8hwVxg_O8xAQzTx';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const $ = id => document.getElementById(id);
 const ST = {nouvelle:"Nouveau",en_cours:"En cours",en_attente:"En attente",resolue:"Résolu",archivee:"Archivé"};
 const PR = {basse:"Basse",normale:"Normale",haute:"Haute",urgente:"Urgente"};
