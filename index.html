@@ -38,7 +38,7 @@ dialog{border:0;border-radius:6px;padding:20px;width:min(560px,94vw);box-shadow:
  <div id="sg" class="hide"><div class="row"><div><label for="sn">Nom</label><input id="sn"></div><div><label for="sp">Prénom</label><input id="sp"></div></div>
  <div class="row"><div><label for="ss">Société</label><input id="ss"></div><div><label for="sf">Fonction</label><input id="sf"></div></div></div>
  <label for="em">Adresse e-mail</label><input id="em" type="email" autocomplete="username">
- <label for="pw">Mot de passe</label><input id="pw" type="password" autocomplete="current-password">
+ <div id="pwb"><label for="pw">Mot de passe</label><input id="pw" type="password" autocomplete="current-password"></div>
  <p class="msg" id="lmsg"></p>
  <button id="go">Se connecter</button> <a class="lnk" id="tog">Demander un compte</a>
 </section>
@@ -56,6 +56,7 @@ dialog{border:0;border-radius:6px;padding:20px;width:min(560px,94vw);box-shadow:
   <p class="empty hide" id="agentmsg">Les interventions arriveront à l'étape suivante : cet espace est réservé aux agents.</p>
  </div>
  <div id="ad" class="hide">
+  <div class="panel"><h3 style="margin-top:0">Demandes de compte</h3><div class="table"><table><thead><tr><th>Nom</th><th>Société / fonction</th><th>E-mail</th><th>Rôle à attribuer</th><th>Décision</th></tr></thead><tbody id="drows"></tbody></table></div><p class="msg" id="cmsg"></p></div>
   <div class="panel"><h3 style="margin-top:0">Utilisateurs</h3><div class="table"><table><thead><tr><th>Nom</th><th>Société / fonction</th><th>E-mail</th><th>Rôle</th><th>Compte</th></tr></thead><tbody id="urows"></tbody></table></div></div>
   <div class="panel"><h3 style="margin-top:0">Sites et tribunes</h3>
    <div class="row"><input id="as" placeholder="Nom du nouveau site"><button id="asb">Ajouter le site</button></div>
@@ -72,6 +73,7 @@ dialog{border:0;border-radius:6px;padding:20px;width:min(560px,94vw);box-shadow:
  <label for="np">Priorité</label><select id="np"></select>
  <p class="msg" id="nmsg"></p><div class="row"><button type="submit">Enregistrer le ticket</button><button type="button" class="sec" data-close>Annuler</button></div></form></dialog>
 
+<dialog id="dPw"><h2 style="margin-top:0">Choisissez votre mot de passe</h2><label for="np1">Mot de passe (8 caractères minimum)</label><input id="np1" type="password" autocomplete="new-password"><p class="msg" id="pmsg"></p><button id="pwok">Enregistrer le mot de passe</button></dialog>
 <dialog id="dDet"><h2 id="dt" style="margin-top:0"></h2><p id="dm" style="color:var(--mute);margin:0 0 8px"></p><p id="dd"></p>
  <div id="dedit"><label for="ds">Statut</label><select id="ds"></select><button id="dsave" style="margin-top:8px">Enregistrer le statut</button>
  <h3>Suivi</h3><div id="dlog"></div><label for="dmsg">Ajouter une note</label><textarea id="dmsg" rows="2"></textarea>
@@ -79,6 +81,7 @@ dialog{border:0;border-radius:6px;padding:20px;width:min(560px,94vw);box-shadow:
  <p class="msg" id="dermsg"></p><button class="sec" data-close>Fermer</button></dialog>
 
 <script>
+const INVITE=/type=(invite|recovery)/.test(location.hash); // lien d'invitation reçu par e-mail
 const SUPABASE_URL = 'https://iflehvsemyyyofkwpezv.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_TupRcFtwtofGhLlz8hwVxg_O8xAQzTx';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -96,21 +99,21 @@ const role = ()=> me.role==="admin" && view ? view : me.role;
 $("fst").innerHTML=opts(ST,"Tous les statuts"); $("fp").innerHTML=opts(PR,"Toutes les priorités"); $("np").innerHTML=opts(PR); $("np").value="normale"; $("ds").innerHTML=opts(ST);
 document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>b.closest("dialog").close());
 
-$("tog").onclick=()=>{signup=!signup;$("sg").classList.toggle("hide",!signup);$("lt").textContent=signup?"Demande de création de compte":"Connexion";
+$("tog").onclick=()=>{signup=!signup;$("pwb").classList.toggle("hide",signup);$("lmsg").style.color="";$("sg").classList.toggle("hide",!signup);$("lt").textContent=signup?"Demande de création de compte":"Connexion";
  $("go").textContent=signup?"Envoyer la demande":"Se connecter";$("tog").textContent=signup?"J'ai déjà un compte":"Demander un compte";$("lmsg").textContent=""};
-$("go").onclick=async()=>{
+$("go").onclick=async()=>{$("lmsg").style.color="";
  const email=$("em").value,password=$("pw").value;
  if(signup){
-  if(![$("sn"),$("sp"),$("ss"),$("sf"),$("em"),$("pw")].every(i=>i.value.trim())){$("lmsg").textContent="Renseignez tous les champs.";return}
-  const {error}=await sb.auth.signUp({email,password,options:{data:{nom:$("sn").value,prenom:$("sp").value,societe:$("ss").value,fonction:$("sf").value}}});
+  if(![$("sn"),$("sp"),$("ss"),$("sf"),$("em")].every(i=>i.value.trim())){$("lmsg").textContent="Renseignez tous les champs.";return}
+  const {error}=await sb.from("demandes_compte").insert({nom:$("sn").value.trim(),prenom:$("sp").value.trim(),societe:$("ss").value.trim(),fonction:$("sf").value.trim(),email:email.trim()});
   if(error){$("lmsg").textContent="Demande impossible : "+error.message;return}
-  $("lmsg").style.color="var(--ok)";$("lmsg").textContent="Demande envoyée. Vous pourrez vous connecter dès que l'administrateur aura activé votre compte.";await sb.auth.signOut();return}
+  $("lmsg").style.color="var(--ok)";$("lmsg").textContent="Demande envoyée. L'administrateur l'examinera puis vous invitera par e-mail à choisir votre mot de passe.";return}
  const {error}=await sb.auth.signInWithPassword({email,password});
  if(error)$("lmsg").textContent="Connexion impossible : vérifiez l'e-mail et le mot de passe.";else start()};
 $("out").onclick=async()=>{await sb.auth.signOut();location.reload()};
 
 async function start(){
- const {data}=await sb.auth.getSession(); if(!data.session)return;
+ const {data}=await sb.auth.getSession(); if(!data.session)return;if(INVITE)$("dPw").showModal();
  const p=await sb.from("profiles").select("*").eq("id",data.session.user.id).single(); me=p.data;
  $("login").classList.add("hide");$("app").classList.remove("hide");$("hd").classList.remove("hide");
  $("who").textContent=`${me.prenom||""} ${me.nom||""} · ${ROLES[me.role]}`;
@@ -172,6 +175,10 @@ $("dnote").onclick=async()=>{const m=$("dmsg").value.trim();if(!m)return;const {
  if(error){$("dermsg").textContent="Note non enregistrée : "+error.message;return}$("dmsg").value="";loadLog()};
 
 async function loadAdmin(){
+ const dc=await sb.from("demandes_compte").select("*").order("created_at",{ascending:false});
+ $("drows").innerHTML=(dc.data||[]).map(d=>{const a=d.statut==="en_attente";return `<tr><td>${esc(d.prenom)} ${esc(d.nom)}</td><td>${esc(d.societe)} – ${esc(d.fonction)}</td><td>${esc(d.email)}</td>
+  <td>${a?`<select data-d="${d.id}" aria-label="Rôle à attribuer">${opts(ROLES)}</select>`:(d.statut==="approuvee"?"Approuvée : "+ROLES[d.role_prevu]:"Refusée")}</td>
+  <td>${a?`<button data-d="${d.id}" data-a="approuvee" data-e="${esc(d.email)}">Approuver</button> <button class="sec" data-d="${d.id}" data-a="refusee">Refuser</button>`:""}</td></tr>`}).join("")||`<tr><td colspan="5" class="empty">Aucune demande de compte.</td></tr>`;
  const {data}=await sb.from("profiles").select("*").order("created_at",{ascending:false});
  $("urows").innerHTML=(data||[]).map(u=>`<tr><td>${esc(u.prenom)} ${esc(u.nom)}</td><td>${esc(u.societe)} – ${esc(u.fonction)}</td><td>${esc(u.email)}</td>
   <td><select data-u="${u.id}" data-f="role">${opts(ROLES)}</select></td>
@@ -186,5 +193,15 @@ $("urows").onclick=e=>{const b=e.target.closest("button");if(b)adm(sb.from("prof
 $("asb").onclick=()=>{if($("as").value.trim()){adm(sb.from("sites").insert({nom:$("as").value.trim()}));$("as").value=""}};
 $("atb").onclick=()=>{if($("atn").value.trim()&&$("at").value){adm(sb.from("tribunes").insert({site_id:$("at").value,nom:$("atn").value.trim()}));$("atn").value=""}};
 $("lists").onclick=e=>{const a=e.target.closest("[data-del]");if(a&&confirm("Supprimer cet élément ? Les tickets liés bloqueront la suppression."))adm(sb.from(a.dataset.del).delete().eq("id",a.dataset.id))};
+$("drows").onclick=async e=>{const b=e.target.closest("button");if(!b)return;
+ const sel=document.querySelector(`select[data-d="${b.dataset.d}"]`);
+ const {error}=await sb.from("demandes_compte").update({statut:b.dataset.a,role_prevu:sel.value}).eq("id",b.dataset.d);
+ $("cmsg").style.color=error?"":"var(--ok)";
+ $("cmsg").textContent=error?"Action impossible : "+error.message:(b.dataset.a==="approuvee"?`Demande approuvée. Invitez maintenant ${b.dataset.e} dans Supabase (Authentication > Users > Invite user).`:"Demande refusée.");
+ loadAdmin()};
+$("pwok").onclick=async()=>{if($("np1").value.length<8){$("pmsg").textContent="8 caractères minimum.";return}
+ const {error}=await sb.auth.updateUser({password:$("np1").value});
+ if(error){$("pmsg").textContent="Enregistrement impossible : "+error.message;return}
+ $("dPw").close();history.replaceState(null,"",location.pathname)};
 start();
 </script></body></html>
