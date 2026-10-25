@@ -43,7 +43,7 @@ button.pb{text-align:left;padding:6px 8px;font-size:13px}
 </style></head><body>
 <header><h1>Travaux & maintenance</h1><div id="hd" class="hide">
  <span id="who"></span>
- <select id="vas" class="hide" aria-label="Voir en tant que"><option value="">Vue admin</option><option value="demandeur">Voir en tant que Demandeur</option><option value="responsable">Voir en tant que Responsable</option><option value="agent">Voir en tant que Agent</option></select>
+ <select id="vas" class="hide" aria-label="Voir en tant que"><option value="">Vue admin</option><option value="demandeur">Voir en tant que Demandeur</option><option value="responsable_batiments">Voir en tant que Responsable bâtiments</option><option value="responsable_exploitation">Voir en tant que Responsable exploitation</option><option value="agent_travaux">Voir en tant que Agent travaux</option><option value="agent_exploitation">Voir en tant que Agent exploitation</option></select>
  <button id="adm" class="hide">Console admin</button><button id="out" title="Se déconnecter" aria-label="Se déconnecter"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button></div></header>
 
 <section id="login">
@@ -85,7 +85,7 @@ button.pb{text-align:left;padding:6px 8px;font-size:13px}
  <label for="np">Priorité</label><select id="np"></select>
  <p class="msg" id="nmsg"></p><div class="row"><button type="submit">Enregistrer le ticket</button><button type="button" class="sec" data-close>Annuler</button></div></form></dialog>
 
-<footer id="ver" aria-hidden="true">Version 1.1 – 25/10/2026</footer>
+<footer id="ver" aria-hidden="true">Version 1.2 – 25/10/2026</footer>
 <div id="pop" class="pop hide"></div>
 <dialog id="dPw"><h2 style="margin-top:0">Choisissez votre mot de passe</h2><label for="np1">Mot de passe (8 caractères minimum)</label><input id="np1" type="password" autocomplete="new-password"><p class="msg" id="pmsg"></p><button id="pwok">Enregistrer le mot de passe</button></dialog>
 <dialog id="dDet"><h2 id="dt" style="margin-top:0"></h2><p id="dm" style="color:var(--mute);margin:0 0 8px"></p><p id="dd"></p>
@@ -102,7 +102,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const $ = id => document.getElementById(id);
 const ST = {nouvelle:"Nouveau",en_cours:"En cours",en_attente:"En attente",resolue:"Résolu",archivee:"Archivé"};
 const PR = {basse:"Basse",normale:"Normale",haute:"Haute",urgente:"Urgente"};
-const ROLES = {demandeur:"Demandeur",responsable:"Responsable",agent:"Agent",admin:"Admin"};
+const ROLES = {demandeur:"Demandeur",responsable_batiments:"Responsable bâtiments",responsable_exploitation:"Responsable exploitation",agent_travaux:"Agent travaux",agent_exploitation:"Agent exploitation",admin:"Admin"};
 let me, sites=[], trib=[], tk=[], cur, signup=false, view="";
 const esc = s => String(s??"").replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const opts = (o,all)=>(all?`<option value="">${all}</option>`:"")+Object.entries(o).map(([k,v])=>`<option value="${k}">${v}</option>`).join("");
@@ -135,7 +135,7 @@ async function start(){
  if(!me.actif){$("pending").classList.remove("hide");return}sb.rpc("marquer_connexion");
  await load();
 }
-$("vas").onchange=()=>{view=$("vas").value;render()};
+$("vas").onchange=()=>{view=$("vas").value;$("ad").classList.add("hide");render()};
 $("adm").onclick=()=>{const on=$("ad").classList.toggle("hide");$("tk").classList.toggle("hide",!on);$("adm").textContent=on?"Console admin":"Retour aux tickets";if(!on)loadAdmin()};
 
 async function load(){
@@ -152,11 +152,11 @@ async function load(){
 $("ns").onchange=()=>$("nt2").innerHTML=tOpts($("ns").value);
 
 function render(){
- const r=role(),isAgent=r==="agent";
- $("tk").classList.remove("hide");$("ad").classList.add("hide");$("adm").textContent="Console admin";
+ const r=role(),isAgent=r.startsWith("agent");
+ const inAdm=!$("ad").classList.contains("hide");$("tk").classList.toggle("hide",inAdm);$("adm").textContent=inAdm?"Retour aux tickets":"Console admin";
  document.querySelector("#tk .bar").classList.toggle("hide",isAgent);document.querySelector("#tk .table").classList.toggle("hide",isAgent);$("agentmsg").classList.toggle("hide",!isAgent);
  $("new").classList.toggle("hide",isAgent);
- const baseL=tk.filter(x=>r!=="demandeur"||(x.demandeur_id===me.id&&x.statut!=="archivee"));
+ const baseL=tk.filter(x=>canSee(x,r));
  lastBase=baseL;const list=sortFilt(baseL);head();
  $("empty").classList.toggle("hide",list.length>0);
  $("rows").innerHTML=list.map(x=>`<tr class="c ${rowCls(x)}" data-id="${x.id}"><td class="nw">${x.ref}</td><td class="tt">${esc(x.titre)}</td><td class="lc">${esc(siteN(x.site_id))} / ${esc(tribN(x.tribune_id))}${x.local?" / "+esc(x.local):""}</td>
@@ -173,7 +173,7 @@ $("fNew").onsubmit=async e=>{e.preventDefault();
  $("dNew").close();load()};
 
 async function openDet(id){
- cur=tk.find(x=>x.id===id);const canEdit=["responsable","admin"].includes(role());
+ cur=tk.find(x=>x.id===id);const canEdit=peutEditer(cur,role());
  $("dt").textContent=`${cur.ref} – ${cur.titre}`;
  $("dm").textContent=`${siteN(cur.site_id)} / ${tribN(cur.tribune_id)}${cur.local?" / "+cur.local:""} · ${new Date(cur.created_at).toLocaleDateString("fr-FR")} · ${COLS.cat.v(cur)} · demandé par ${cur.demandeur_nom||"—"}`;
  $("dd").textContent=cur.description||"Aucune description.";$("ds").value=cur.statut;$("dmsg").value="";$("dermsg").textContent="";
@@ -262,6 +262,11 @@ $("pop").onchange=e=>{const k=$("pop").dataset.k,bx=[...document.querySelectorAl
 $("pop").oninput=e=>{if(e.target.id!=="pq")return;const q=e.target.value.toLowerCase();
  document.querySelectorAll("#pl label").forEach(l=>l.classList.toggle("hide",!l.textContent.toLowerCase().includes(q)))};
 document.addEventListener("click",e=>{if(!e.target.closest("#pop,.hf"))$("pop").classList.add("hide")});
+const isResp=r=>r==="responsable_batiments"||r==="responsable_exploitation";
+const dom=r=>({responsable_batiments:"batiments",agent_travaux:"batiments",responsable_exploitation:"exploitation",agent_exploitation:"exploitation"})[r];
+const catDom=x=>(cats.find(c=>c.id===x.categorie_id)||{}).domaine;
+const peutEditer=(x,r)=>r==="admin"||(isResp(r)&&(!x.categorie_id||catDom(x)===dom(r)));
+const canSee=(x,r)=>peutEditer(x,r)||(["demandeur","responsable_batiments","responsable_exploitation"].includes(r)&&x.demandeur_id===me.id&&x.statut!=="archivee");
 let cats=[],corps=[];
 const catOpts=()=>cats.map(c=>`<option value="${c.id}">${esc(c.nom)}</option>`).join("");
 const corpsOpts=cid=>corps.filter(x=>x.categorie_id==cid).map(x=>`<option value="${x.id}">${esc(x.nom)}</option>`).join("");
