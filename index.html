@@ -31,7 +31,7 @@ th{white-space:nowrap}
 td.nw{white-space:nowrap}td.tt{min-width:220px;overflow-wrap:anywhere}td.lc{min-width:180px;overflow-wrap:anywhere}
 tr.new td{font-weight:700}
 tr.urg td,tr.urg .tag{color:var(--bad)}
-tr.res{opacity:.7}tr.arc{opacity:.5}
+tr.res{opacity:.7}tr.arc{opacity:.5}.s-refusee{color:var(--bad)}
 #dDet,#dIv{width:min(640px,94vw)}.dh{display:flex;justify-content:space-between;align-items:start;gap:10px}.dh h2{margin:0}.sub{color:var(--mute)}
 button.ic{background:none;color:var(--accent);border:1px solid var(--line);padding:3px 9px;font-size:17px}
 .big{font-size:17px;margin:10px 0 4px}.meta{color:var(--mute);font-size:13px;margin:4px 0}
@@ -67,7 +67,7 @@ button.pb{text-align:left;padding:6px 8px;font-size:13px}
  <div id="pending" class="panel hide">Votre compte est en attente d'activation par l'administrateur.</div>
  <div id="tabs" class="bar hide"><button class="btn" id="tabt">Tickets</button><button class="btn sec" id="tabi">Interventions</button></div>
  <div id="iv" class="hide"><div class="bar"><button class="btn" id="newint">Nouvelle intervention</button></div>
-  <div class="table"><table><thead><tr><th>N°</th><th>Intervention</th><th>Lieu</th><th>Fin prévue</th><th>Intervenants</th><th>État</th></tr></thead><tbody id="irows"></tbody></table>
+  <div class="table"><table><thead><tr><th>N°</th><th>Intervention</th><th>Lieu</th><th>Fin prévue</th><th>Attribué à / entreprise</th><th>État</th></tr></thead><tbody id="irows"></tbody></table>
   <div id="iempty" class="empty hide">Aucune intervention.</div></div></div>
  <div id="tk" class="hide">
   <div class="bar"><button class="btn" id="new">Nouveau ticket</button></div>
@@ -81,7 +81,7 @@ button.pb{text-align:left;padding:6px 8px;font-size:13px}
    <div class="row"><select id="ac" aria-label="Catégorie"></select><input id="acn" placeholder="Nouveau corps d'état"><button id="acb">Ajouter</button></div><div id="clists" style="margin-top:12px"></div></div>
   <div class="panel"><h3 style="margin-top:0">Annuaire des entreprises</h3>
    <div class="row"><select id="en_c" aria-label="Corps d'état"></select><input id="en_e" placeholder="Entreprise"></div>
-   <div class="row" style="margin-top:8px"><input id="en_n" placeholder="Chargé d'affaires"><input id="en_m" type="email" placeholder="E-mail"><input id="en_t" placeholder="Mobile"><button id="en_b">Ajouter</button></div><div id="en_l" style="margin-top:12px"></div></div>
+   <div id="en_k" style="margin-top:8px"></div><div class="row" style="margin-top:8px"><input id="en_n" placeholder="Chargé d'affaires"><input id="en_m" type="email" placeholder="E-mail"><input id="en_t" placeholder="Mobile"><button id="en_b">Ajouter</button></div><div id="en_l" style="margin-top:12px"></div></div>
   <div class="panel"><h3 style="margin-top:0">Utilisateurs</h3><div class="table"><table><thead><tr><th>Nom</th><th>Société / fonction</th><th>E-mail</th><th>Rôle</th><th>Compte</th></tr></thead><tbody id="urows"></tbody></table></div></div>
   <div class="panel"><h3 style="margin-top:0">Sites et zones/tribunes</h3>
    <div class="row"><input id="as" placeholder="Nom du nouveau site"><button id="asb">Ajouter le site</button></div>
@@ -100,9 +100,9 @@ button.pb{text-align:left;padding:6px 8px;font-size:13px}
  <p class="msg" id="nmsg"></p><div class="row"><button type="submit">Enregistrer le ticket</button><button type="button" class="sec" data-close>Annuler</button></div></form></dialog>
 
 <dialog id="dIv"><div id="ibody"></div></dialog>
-<dialog id="dJ"><h3 id="jt" style="margin-top:0"></h3><label for="jx">Justification de la clôture</label><textarea id="jx" rows="3"></textarea><p class="msg" id="jm"></p>
- <div class="row"><button id="jok">Valider la clôture</button><button class="sec" id="jno">Annuler</button></div></dialog>
-<footer id="ver" aria-hidden="true">Version 2.1 – 26/10/2026</footer>
+<dialog id="dJ"><h3 id="jt" style="margin-top:0"></h3><label for="jx">Justification (obligatoire)</label><textarea id="jx" rows="3"></textarea><p class="msg" id="jm"></p>
+ <div class="row"><button id="jok">Valider</button><button class="sec" id="jno">Annuler</button></div></dialog>
+<footer id="ver" aria-hidden="true">Version 2.2 – 27/10/2026</footer>
 <div id="pop" class="pop hide"></div>
 <dialog id="dPw"><h2 style="margin-top:0">Choisissez votre mot de passe</h2><label for="np1">Mot de passe (8 caractères minimum)</label><input id="np1" type="password" autocomplete="new-password"><p class="msg" id="pmsg"></p><button id="pwok">Enregistrer le mot de passe</button></dialog>
 <dialog id="dDet"><div id="tbody"></div></dialog>
@@ -113,7 +113,7 @@ const SUPABASE_URL = 'https://iflehvsemyyyofkwpezv.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_TupRcFtwtofGhLlz8hwVxg_O8xAQzTx';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const $ = id => document.getElementById(id);
-const ST = {nouvelle:"Nouveau",en_cours:"En cours",en_attente:"En attente",resolue:"Résolu",archivee:"Archivé"};
+const ST = {nouvelle:"Nouveau",en_cours:"En cours",en_attente:"En attente",resolue:"Résolu",refusee:"Refusé",archivee:"Archivé"};
 const PR = {basse:"Basse",normale:"Normale",haute:"Haute",urgente:"Urgente"};
 const ROLES = {demandeur:"Demandeur",responsable_batiments:"Responsable bâtiments",responsable_exploitation:"Responsable exploitation",agent_travaux:"Agent bâtiment",agent_exploitation:"Agent exploitation",admin:"Admin"};
 let me, sites=[], trib=[], tk=[], cur, signup=false, view="";
@@ -157,7 +157,7 @@ async function load(){
  sites=s.data;trib=t.data;tk=k.data;
  const [c1,c2]=await Promise.all([sb.from("categories").select("*").order("id"),sb.from("corps_etat").select("*").order("id")]);
  cats=c1.data||[];corps=c2.data||[];
- const [iv,ag]=await Promise.all([sb.from("interventions").select("*").order("created_at",{ascending:false}),sb.from("profiles").select("id,prenom,nom,role,email").in("role",["agent_travaux","agent_exploitation"]).eq("actif",true)]);
+ const [iv,ag]=await Promise.all([sb.from("interventions").select("*").order("created_at",{ascending:false}),sb.from("profiles").select("id,prenom,nom,role,email").in("role",["agent_travaux","agent_exploitation","responsable_batiments","responsable_exploitation"]).eq("actif",true)]);
  ints=iv.data||[];agents=ag.data||[];const en=await sb.from("entreprises").select("*").order("entreprise");ents=en.data||[];$("ncat").innerHTML=catOpts();$("ncorps").innerHTML=corpsOpts($("ncat").value);
  
  $("ns").innerHTML=sOpts();$("nt2").innerHTML=tOpts($("ns").value);
@@ -234,8 +234,8 @@ const COLS={
  priorite:{l:"Priorité",v:x=>PR[x.priorite],k:x=>["urgente","haute","normale","basse"].indexOf(x.priorite)},
  statut:{l:"Statut",v:x=>ST[x.statut],k:x=>Object.keys(ST).indexOf(x.statut)},
  date:{l:"Créé le",v:x=>new Date(x.created_at).toLocaleDateString("fr-FR"),k:x=>+new Date(x.created_at)}};
-const done=x=>["resolue","archivee"].includes(x.statut);
-const rowCls=x=>(x.statut==="nouvelle"?"new ":"")+(x.priorite==="urgente"&&!done(x)?"urg ":"")+(x.statut==="resolue"?"res":x.statut==="archivee"?"arc":"");
+const done=x=>["resolue","refusee","archivee"].includes(x.statut);
+const rowCls=x=>(x.statut==="nouvelle"?"new ":"")+(x.priorite==="urgente"&&!done(x)?"urg ":"")+(["resolue","refusee"].includes(x.statut)?"res":x.statut==="archivee"?"arc":"");
 function sortFilt(l){
  l=l.filter(x=>Object.entries(filt).every(([k,s])=>s.has(COLS[k].v(x))));
  if(!sort.k)return l;const f=COLS[sort.k].k;
@@ -269,7 +269,18 @@ const peutEditer=(x,r)=>r==="admin"||(isResp(r)&&(!x.categorie_id||catDom(x)===d
 const canSee=(x,r)=>peutEditer(x,r)||(["demandeur","responsable_batiments","responsable_exploitation"].includes(r)&&x.demandeur_id===me.id&&x.statut!=="archivee");
 let cats=[],corps=[];
 const ET={planifiee:"Planifiée",en_attente_pieces:"En attente de pièces",en_cours:"En cours",terminee:"Terminée",annulee:"Annulée"};
-const SU=[["devis_demande_at","Devis demandé"],["devis_recu_at","Devis reçu"],["bc_edite_at","Bon de commande édité"],["bc_envoye_at","Bon de commande envoyé"],["facture_recue_at","Facture reçue"],["facture_payee_at","Facture payée"]];
+const SU=[["devis_demande_at","Devis demandé","d"],["devis_recu_at","Devis reçu","d"],["bc_numero","N° de bon de commande (12 caractères min.)","t"],["bc_envoye_at","Bon de commande envoyé","d"],["facture_recue","Facture reçue","n"],["facture_payee","Facture payée","n"]];
+const NPO=[["non","Non"],["partiel","Partiel"],["oui","Oui"]];
+const suIn=(k,l,t,c)=>`<div style="flex:1 1 45%"><label>${l}</label>${t==="d"?`<input type="date" data-f="${k}" value="${c[k]||""}">`:t==="t"?`<input data-f="${k}" value="${esc(c[k]||"")}">`:`<select data-f="${k}">${O(NPO,c[k]||"non")}</select>`}</div>`;
+const suVw=(k,l,t,c)=>t==="d"?(c[k]?`✔ ${l} (${fdate(c[k])})`:`○ ${l}`):t==="t"?(c[k]?`✔ BC n° ${esc(c[k])}`:"○ N° de bon de commande"):`${l} : ${(NPO.find(x=>x[0]===(c[k]||"non"))||[])[1]}`;
+function fmtTel(v){if(!v)return"";const s=String(v).trim(),d=s.replace(/\D/g,"");let m=d.match(/^(?:0033|33)0?(\d{9})$/);
+ if(m)return"+33 "+m[1][0]+" "+m[1].slice(1).replace(/(\d{2})(?=\d)/g,"$1 ");m=d.match(/^0(\d{9})$/);
+ return m?"0"+m[1][0]+" "+m[1].slice(1).replace(/(\d{2})(?=\d)/g,"$1 "):s}
+const eLab=e=>e.entreprise+(e.contact?" – "+e.contact:"");
+function entOpts(c){const inC=ents.filter(e=>!(e.categorie_ids||[]).length||(e.categorie_ids||[]).includes(c.categorie_id)),m=c.corps_etat_id?inC.filter(e=>e.corps_etat_id===c.corps_etat_id):[],o=inC.filter(e=>!m.includes(e)),
+ op=(e,b)=>`<option value="${e.id}"${e.id===c.entreprise_id?" selected":""}${b?' style="font-weight:bold"':""}>${esc(eLab(e))}</option>`;
+ return (m.length?`<optgroup label="Corps d'état : ${esc((corps.find(x=>x.id===c.corps_etat_id)||{}).nom||"")}">${m.map(e=>op(e,1)).join("")}</optgroup>`:"")+(o.length?`<optgroup label="${m.length?"Autres entreprises de la catégorie":"Entreprises de la catégorie"}">${o.map(e=>op(e)).join("")}</optgroup>`:"")}
+const dv=()=>`<label class="ck"><input type="checkbox" data-dv${devisMail?" checked":""}> Inclure une demande de devis dans le mail</label>`;
 let ints=[],agents=[],ents=[],curI=null,pendingTicket=null,tab="t",ed=false,imode="a",devisMail=false;
 const fdate=d=>d?new Date(d).toLocaleDateString("fr-FR"):"—",nm=()=>`${me.prenom} ${me.nom}`,isAg=()=>role().startsWith("agent"),today=()=>new Date().toLocaleDateString("sv-SE");
 const O=(a,v)=>a.map(([k,l])=>`<option value="${k}"${String(k)===String(v)?" selected":""}>${esc(l)}</option>`).join("");
@@ -286,7 +297,7 @@ const baseF=c=>`<div class="row"><div><label>Site</label><select data-f="site_id
 <label>Titre</label><input data-f="titre" value="${esc(c.titre)}">`;
 const hdr=c=>`<div class="dh"><div><h2>${esc(siteN(c.site_id))}</h2><div class="sub">${esc(tribN(c.tribune_id))}${c.local?" · "+esc(c.local):""}</div></div>`;
 // ===== TICKET =====
-const canT=()=>peutEditer(cur,role()),canF=()=>canT()||(cur.demandeur_id===me.id&&["demandeur","responsable_batiments","responsable_exploitation"].includes(role()));
+const canT=()=>peutEditer(cur,role()),canF=()=>canT()||(cur.demandeur_id===me.id&&cur.statut==="nouvelle"&&["demandeur","responsable_batiments","responsable_exploitation"].includes(role()));
 function openDet(id){cur=tk.find(x=>x.id===id);ed=false;drawT();$("dDet").showModal()}
 function drawT(){const c=cur,E=ed&&canF(),cn=canT();
  $("tbody").innerHTML=`${hdr(c)}${canF()?`<button class="ic" data-edit title="Modifier" aria-label="Modifier">✎</button>`:""}</div>
@@ -305,9 +316,9 @@ async function loadTl(){const cn=canT();
   ...(n.data||[]).filter(x=>!(cn&&x.message.startsWith("Statut changé"))).map(x=>({d:x.created_at,a:x.auteur,t:x.message,n:1}))].sort((a,b)=>new Date(a.d)-new Date(b.d));
  $("tl").innerHTML=L.map(x=>`<div class="tl${x.n?" nt":""}"><span>${tlTime(x.d)}</span>${x.a?"<b>"+esc(x.a)+"</b> : ":""}${esc(x.t)}</div>`).join("")||`<p class="empty" style="padding:8px">Aucun historique.</p>`}
 async function reloadT(){await load();cur=tk.find(x=>x.id===cur.id)||cur;drawT()}
-async function setSt(k){let j=null;if(k==="resolue"){j=await askJust("Clôture du ticket "+cur.ref);if(!j)return}
+async function setSt(k){let j=null;if(k==="resolue"||k==="refusee"){j=await askJust((k==="refusee"?"Refus du ticket ":"Clôture du ticket ")+cur.ref);if(!j)return}
  const {error}=await sb.from("tickets").update({statut:k}).eq("id",cur.id);if(error){alert("Modification impossible : "+error.message);return}
- if(j)await sb.from("ticket_suivi").insert({ticket_id:cur.id,auteur:nm(),message:"Clôture : "+j});reloadT()}
+ if(j)await sb.from("ticket_suivi").insert({ticket_id:cur.id,auteur:nm(),message:(k==="refusee"?"Refus : ":"Clôture : ")+j});reloadT()}
 $("tbody").onchange=async e=>{if(!e.target.dataset.f)return;const u=norm(e.target);if(u.titre===null){alert("Le titre est obligatoire.");drawT();return}
  const {error}=await sb.from("tickets").update(u).eq("id",cur.id);if(error){alert("Modification impossible : "+error.message);drawT();return}reloadT()};
 $("tbody").onclick=async e=>{const b=e.target.closest("[data-edit],[data-st],[data-note],[data-newint],[data-i]");if(!b)return;const d=b.dataset;
@@ -328,7 +339,7 @@ $("irows").onclick=e=>{const tr=e.target.closest("tr");if(tr){pendingTicket=null
 function openIv(i,t){const v=i?{...i}:{site_id:t?t.site_id:sites[0]&&sites[0].id,tribune_id:t?t.tribune_id:null,local:t?t.local:null,categorie_id:t?t.categorie_id:cats[0]&&cats[0].id,corps_etat_id:t?t.corps_etat_id:null,
  titre:t?t.titre:"",consignes:t&&t.description||"",priorite:t?t.priorite:"normale",etat:"planifiee",agent_ids:[],echeance:null};
  if(!i&&!v.tribune_id)v.tribune_id=(trib.find(x=>x.site_id===v.site_id)||{}).id;if(!i&&!v.corps_etat_id)v.corps_etat_id=(corps.find(x=>x.categorie_id===v.categorie_id)||{}).id||null;
- curI=v;ed=false;imode=v.entreprise_id?"e":"a";devisMail=false;drawI();$("dIv").showModal()}
+ curI=v;ed=false;imode=v.entreprise_id?"e":"a";devisMail=false;drawI();if(!$("dIv").open)$("dIv").showModal()}
 function drawI(){const c=curI,saved=!!c.id,r=role(),ag=isAg(),canE=!ag&&r!=="demandeur"&&(!saved||peutEditer(c,r)),E=canE&&(ed||!saved),mine=ag&&(c.agent_ids||[]).includes(me.id);
  const mode=c.entreprise_id?"e":imode,ent=ents.find(x=>x.id===c.entreprise_id),t=c.ticket_id&&tk.find(x=>x.id===c.ticket_id),cd=catDom(c);
  const ce=corps.find(x=>x.id===c.corps_etat_id),allE=!ce||ce.nom==="Tous corps d'état";
@@ -336,16 +347,16 @@ function drawI(){const c=curI,saved=!!c.id,r=role(),ag=isAg(),canE=!ag&&r!=="dem
  <p class="big"><b>${saved?c.ref:"Nouvelle intervention"}</b> – ${esc(c.titre||"")}</p><div class="desc">${esc(c.consignes||"Aucune consigne.")}</div>
  ${E?`<div class="ep">${baseF(c)}<label>Consignes</label><textarea data-f="consignes" rows="3">${esc(c.consignes||"")}</textarea>
   <div class="row"><div><label>Priorité</label><select data-f="priorite">${prioO(c.priorite)}</select></div><div><label>Date de fin d'intervention (prévision)</label><input type="date" data-f="echeance" value="${c.echeance||""}"></div></div>
-  <label>Intervenants</label><select data-f="mode">${O([["a","Agents"],["e","Entreprise"]],mode)}</select>
-  ${mode==="a"?agents.filter(a=>!cd||dom(a.role)===cd).map(a=>`<label class="ck"><input type="checkbox" data-agent="${a.id}" data-n="${esc(((a.prenom||"")+" "+(a.nom||"")).trim())}"${(c.agent_ids||[]).includes(a.id)?" checked":""}> ${esc(a.prenom||"")} ${esc(a.nom||"")}</label>`).join("")||`<span class="empty" style="padding:4px">Aucun agent actif dans ce domaine.</span>`
-  :`<label>Interlocuteur (selon le corps d'état)</label><select data-f="entreprise_id"><option value="">— Choisir —</option>${O(ents.filter(e=>allE||e.corps_etat_id===c.corps_etat_id).map(e=>[e.id,`${e.entreprise}${e.contact?" – "+e.contact:""}`]),c.entreprise_id)}</select>
-  <div class="row" style="flex-wrap:wrap">${SU.map(([k,l])=>`<div style="flex:1 1 45%"><label>${l}</label><input type="date" data-f="${k}" value="${c[k]||""}"></div>`).join("")}</div>`}</div>`:""}
+  <label>Intervenants</label><select data-f="mode">${O([["a","Agents / responsables"],["e","Entreprise"]],mode)}</select>
+  ${mode==="a"?agents.filter(a=>!cd||dom(a.role)===cd).map(a=>`<label class="ck"><input type="checkbox" data-agent="${a.id}" data-n="${esc(((a.prenom||"")+" "+(a.nom||"")).trim())}"${(c.agent_ids||[]).includes(a.id)?" checked":""}> ${esc(a.prenom||"")} ${esc(a.nom||"")} <small>(${ROLES[a.role]})</small></label>`).join("")||`<span class="empty" style="padding:4px">Aucun agent actif dans ce domaine.</span>`
+  :`<label>Interlocuteur (entreprises de la catégorie, celles du corps d'état en tête)</label><select data-f="entreprise_id"><option value="">— Choisir —</option>${entOpts(c)}</select>${dv()}
+  <div class="row" style="flex-wrap:wrap">${SU.map(([k,l,t])=>suIn(k,l,t,c)).join("")}</div>`}</div>`:""}
  <p class="meta">${t?"Ticket "+esc(t.ref)+" · ":"Sans ticket · "}${esc(COLS.cat.v(c))} · Priorité ${PR[c.priorite]} · Fin prévue : <b>${fdate(c.echeance)}</b></p>
- <p>${mode==="e"?`<b>${esc(ent?ent.entreprise:c.prestataire||"")}</b>${ent?`<br>${esc(ent.contact||"")} · ${esc(ent.email||"")} · ${esc(ent.mobile||"")}`:""}`:`Agents : ${esc(c.agents_noms||"à désigner")}`}</p>
- ${saved&&mode==="e"?`<p class="meta">${SU.map(([k,l])=>c[k]?`✔ ${l} (${fdate(c[k])})`:`○ ${l}`).join(" · ")}</p>`:""}
+ <p>${mode==="e"?`<b>${esc(ent?ent.entreprise:c.prestataire||"")}</b>${ent?`<br>${esc(ent.contact||"")} · ${esc(ent.email||"")} · ${esc(fmtTel(ent.mobile))}`:""}`:`Attribué à : ${esc(c.agents_noms||"à désigner")}`}</p>${mode==="e"&&saved&&canE&&!E?dv():""}
+ ${saved&&mode==="e"?`<p class="meta">${SU.map(([k,l,t])=>suVw(k,l,t,c)).join(" · ")}</p>`:""}
  ${saved?`<p><span class="tag">${ET[c.etat]}</span></p>`:""}
  ${saved&&(canE||mine)?`<div class="btns">${Object.entries(ET).filter(([k])=>k!==c.etat&&!(ag&&k==="annulee")).map(([k,v])=>`<button class="sec" data-et="${k}">${v}</button>`).join("")}</div>`:""}
- ${saved&&canE?`<div class="btns">${mode==="e"?`<label class="ck"><input type="checkbox" data-dv${devisMail?" checked":""}> Inclure une demande de devis dans le mail</label><button data-mail>Envoyer le mail</button>`:`<button class="sec" data-pdf>Fiche PDF</button><button class="sec" data-mail>E-mail</button>`}</div>`:""}
+ ${saved&&canE?`<div class="btns">${mode==="e"?`<button data-mail>Envoyer le mail</button>`:`<button class="sec" data-pdf>Fiche PDF</button><button class="sec" data-mail>E-mail</button>`}${c.ticket_id&&tk.some(x=>x.id===c.ticket_id)?`<button class="sec" data-another>Nouvelle intervention pour ce ticket</button>`:""}</div>`:""}
  ${saved?`<h3>Notes</h3><div id="inl"></div><textarea id="inm" rows="2" aria-label="Nouvelle note" style="margin-top:8px"></textarea><button data-nadd style="margin-top:6px">Ajouter la note</button>`
  :`<p class="msg" id="imsg"></p><button data-create>Créer l'intervention</button>`}`;if(saved)loadN()}
 async function loadN(){const {data}=await sb.from("intervention_notes").select("*").eq("intervention_id",curI.id).order("created_at");
@@ -358,37 +369,45 @@ $("ibody").onchange=async e=>{const t=e.target,d=t.dataset;
  if(!d.f)return;let u=norm(t);
  if(d.f==="mode"){imode=t.value;if(t.value==="e"){drawI();return}u={entreprise_id:null,prestataire:null,prestataire_email:null}}
  if(d.f==="entreprise_id"){const en=ents.find(x=>x.id===u.entreprise_id);u=en?{entreprise_id:en.id,prestataire:en.entreprise+(en.contact?" – "+en.contact:""),prestataire_email:en.email,agent_ids:[],agents_noms:null}:{entreprise_id:null,prestataire:null,prestataire_email:null}}
- if(d.f==="titre"&&!u.titre){alert("Le titre est obligatoire.");drawI();return}upd(u)};
+ if(d.f==="titre"&&!u.titre){alert("Le titre est obligatoire.");drawI();return}
+ if(d.f==="bc_numero"&&u.bc_numero){u.bc_numero=u.bc_numero.trim();if(u.bc_numero.length<12){alert("Le numéro de bon de commande doit comporter au moins 12 caractères.");drawI();return}}upd(u)};
 async function setEt(k){let j=null;if(k==="terminee"){j=await askJust("Clôture de l'intervention "+curI.ref);if(!j)return}
  const {error}=isAg()?await sb.rpc("agent_maj_etat",{p_id:curI.id,p_etat:k}):await sb.from("interventions").update({etat:k}).eq("id",curI.id);
  if(error){alert("Modification impossible : "+error.message);return}
  if(j)await sb.from("intervention_notes").insert({intervention_id:curI.id,auteur:nm(),message:"Clôture : "+j});
  const tid=curI.ticket_id,t=tid&&tk.find(x=>x.id===tid);
- if(k==="terminee"&&t&&!isAg()&&!["resolue","archivee"].includes(t.statut)){const au=ints.filter(x=>x.ticket_id===tid&&x.id!==curI.id&&!["terminee","annulee"].includes(x.etat)).length;
+ if(k==="terminee"&&t&&!isAg()&&!["resolue","refusee","archivee"].includes(t.statut)){const au=ints.filter(x=>x.ticket_id===tid&&x.id!==curI.id&&!["terminee","annulee"].includes(x.etat)).length;
   if(confirm(`Passer aussi le ticket ${t.ref} en « Résolu » ?`+(au?`\nAttention : ${au} autre(s) intervention(s) de ce ticket ne sont pas terminées.`:""))){await sb.from("tickets").update({statut:"resolue"}).eq("id",tid);await sb.from("ticket_suivi").insert({ticket_id:tid,auteur:nm(),message:`Clôture (intervention ${curI.ref}) : ${j}`})}}
  await load();curI=ints.find(x=>x.id===curI.id)||curI;drawI()}
 async function createI(){const c=curI,o={};["site_id","tribune_id","local","categorie_id","corps_etat_id","titre","consignes","priorite","echeance","etat","agent_ids","agents_noms","prestataire","prestataire_email","entreprise_id",...SU.map(x=>x[0])].forEach(k=>{if(c[k]!==undefined)o[k]=c[k]});
  if(!o.titre||!o.site_id||!o.tribune_id||!o.categorie_id){$("imsg").textContent="Titre, site, zone/tribune et catégorie sont obligatoires.";return}
  const tid=pendingTicket?pendingTicket.id:null,{data,error}=await sb.from("interventions").insert({...o,ticket_id:tid}).select().single();
  if(error){$("imsg").textContent="Création impossible : "+error.message;return}
- const t=tid&&tk.find(x=>x.id===tid);if(t&&t.statut==="nouvelle")await sb.from("tickets").update({statut:"en_cours"}).eq("id",tid);
+ const t=tid&&tk.find(x=>x.id===tid);if(t&&["nouvelle","resolue"].includes(t.statut)){await sb.from("tickets").update({statut:"en_cours"}).eq("id",tid);if(t.statut==="resolue")await sb.from("ticket_suivi").insert({ticket_id:tid,auteur:nm(),message:`Ticket rouvert : nouvelle intervention ${data.ref}`})}
  await load();curI=ints.find(x=>x.id===data.id)||data;ed=false;drawI()}
 function pdfI(){const c=curI,{jsPDF}=window.jspdf,d=new jsPDF();let y=18;
  const T=(t,b,z)=>{d.setFont("helvetica",b?"bold":"normal");d.setFontSize(z||11);const L=d.splitTextToSize(String(t),180);d.text(L,15,y);y+=L.length*6+2};
  T("FICHE D'INTERVENTION "+c.ref,1,16);y+=2;T(c.titre,1,13);T(`Lieu : ${siteN(c.site_id)} / ${tribN(c.tribune_id)}${c.local?" / "+c.local:""}`);T(`Catégorie : ${COLS.cat.v(c)}`);
  T(`Priorité : ${PR[c.priorite]}      Fin d'intervention prévue : ${c.echeance?fdate(c.echeance):"non précisée"}`);T(`Intervenants : ${c.agents_noms||"à définir"}`);
  y+=3;T("Consignes",1);T(c.consignes||"Aucune consigne particulière.");y+=6;T(`Fiche émise le ${fdate(new Date())} par ${nm()}`,0,9);d.save(`fiche-${c.ref}.pdf`)}
-function mailI(){const c=curI,e=c.entreprise_id?"e":"a",ent=ents.find(x=>x.id===c.entreprise_id),dv=e==="e"&&devisMail;
+function mailI(){const c=curI,e=c.entreprise_id?"e":"a",ent=ents.find(x=>x.id===c.entreprise_id),dv=e==="e"&&devisMail,ce=(corps.find(x=>x.id===c.corps_etat_id)||{}).nom;
  const to=e==="e"?(ent?ent.email:c.prestataire_email)||"":agents.filter(a=>(c.agent_ids||[]).includes(a.id)).map(a=>a.email).join(",");
- const body=`Bonjour${ent&&ent.contact?" "+ent.contact:""},\n\n${dv?"Nous vous remercions de nous adresser un devis pour l'intervention ci-dessous.":"Nous vous confions l'intervention ci-dessous."}\n\nRéférence : ${c.ref}\nObjet : ${c.titre}\nLieu : ${siteN(c.site_id)} / ${tribN(c.tribune_id)}${c.local?" / "+c.local:""}\nCatégorie : ${COLS.cat.v(c)}\nPriorité : ${PR[c.priorite]}\nDate de fin d'intervention (prévision) : ${fdate(c.echeance)}\n\nConsignes :\n${c.consignes||"—"}\n\n${e==="a"?"La fiche d'intervention est à joindre (bouton « Fiche PDF »).\n\n":""}Cordialement,\n${nm()}`;
- location.href="mailto:"+to+"?subject="+encodeURIComponent(`${dv?"Demande de devis – ":"Intervention "}${c.ref} – ${c.titre}`)+"&body="+encodeURIComponent(body)}
-$("ibody").onclick=async e=>{const b=e.target.closest("[data-edit],[data-et],[data-create],[data-pdf],[data-mail],[data-nadd]");if(!b)return;const d=b.dataset;
- if("edit" in d){ed=!ed;drawI()}else if(d.et)setEt(d.et);else if("create" in d)createI();else if("pdf" in d)pdfI();else if("mail" in d)mailI();
+ const L=["Bonjour,","",dv?"Nous vous remercions de nous adresser un devis pour l'intervention ci-dessous :":"Nous vous confions l'intervention ci-dessous :",
+  `Objet : ${c.titre}${c.consignes?" : "+c.consignes:""}`,`Lieu : ${siteN(c.site_id)}`,`Zone : ${tribN(c.tribune_id)}`,...(c.local?[`Local : ${c.local}`]:[]),
+  ...(ce?[`Corps d'état : ${ce}`]:[]),`Priorité : ${PR[c.priorite]}`,...(c.echeance?[`Demande finalisation intervention pour le : ${fdate(c.echeance)}`]:[]),
+  ...(e==="a"?["","(Fiche d'intervention à joindre : bouton « Fiche PDF »)"]:[]),"","Cordialement,",nm()];
+ location.href="mailto:"+to+"?subject="+encodeURIComponent(`${siteN(c.site_id).toUpperCase()} - ${dv?"Demande de devis":"Intervention"} ${c.ref} – ${c.titre}`)+"&body="+encodeURIComponent(L.join("\r\n"))}
+$("ibody").onclick=async e=>{const b=e.target.closest("[data-edit],[data-et],[data-create],[data-pdf],[data-mail],[data-nadd],[data-another]");if(!b)return;const d=b.dataset;
+ if("edit" in d){ed=!ed;drawI()}else if(d.et)setEt(d.et);else if("create" in d)createI();else if("another" in d){const t=tk.find(x=>x.id===curI.ticket_id);pendingTicket=t;openIv(null,t)}else if("pdf" in d)pdfI();else if("mail" in d)mailI();
  else if("nadd" in d){const m=$("inm").value.trim();if(!m)return;const {error}=await sb.from("intervention_notes").insert({intervention_id:curI.id,auteur:nm(),message:m});if(error)alert(error.message);else{$("inm").value="";loadN()}}};
 // ===== ANNUAIRE (console admin) =====
-function renderAnn(){$("en_c").innerHTML=O(corps.map(x=>[x.id,`${(cats.find(c=>c.id===x.categorie_id)||{}).nom} – ${x.nom}`]));
- $("en_l").innerHTML=`<div class="table"><table><thead><tr><th>Corps d'état</th><th>Entreprise</th><th>Chargé d'affaires</th><th>E-mail</th><th>Mobile</th><th></th></tr></thead><tbody>${ents.map(e=>`<tr><td>${esc((corps.find(x=>x.id===e.corps_etat_id)||{}).nom||"—")}</td><td>${esc(e.entreprise)}</td><td>${esc(e.contact||"")}</td><td>${esc(e.email||"")}</td><td>${esc(e.mobile||"")}</td><td><a class="lnk" data-en="${e.id}">supprimer</a></td></tr>`).join("")||`<tr><td colspan="6" class="empty">Annuaire vide.</td></tr>`}</tbody></table></div>`}
-$("en_b").onclick=()=>{if(!$("en_e").value.trim())return;adm(sb.from("entreprises").insert({corps_etat_id:$("en_c").value||null,entreprise:$("en_e").value.trim(),contact:$("en_n").value.trim()||null,email:$("en_m").value.trim()||null,mobile:$("en_t").value.trim()||null}));["en_e","en_n","en_m","en_t"].forEach(i=>$(i).value="")};
+function renderAnn(){$("en_c").innerHTML=`<option value="">Corps d'état (facultatif)</option>`+O(corps.map(x=>[x.id,`${(cats.find(c=>c.id===x.categorie_id)||{}).nom} – ${x.nom}`]));
+ $("en_k").innerHTML=`<b style="font-size:13px">Apparaît dans les catégories :</b> `+cats.map(c=>`<label class="ck" style="display:inline-flex;margin-right:14px"><input type="checkbox" data-ec="${c.id}" checked> ${esc(c.nom)}</label>`).join("");
+ $("en_l").innerHTML=`<div class="table"><table><thead><tr><th>Entreprise</th><th>Catégories</th><th>Corps d'état</th><th>Chargé d'affaires</th><th>E-mail</th><th>Mobile</th><th></th></tr></thead><tbody>${ents.map(e=>`<tr><td>${esc(e.entreprise)}</td><td>${esc((e.categorie_ids||[]).map(i=>(cats.find(c=>c.id===i)||{}).nom).filter(Boolean).join(", ")||"Toutes")}</td><td>${esc((corps.find(x=>x.id===e.corps_etat_id)||{}).nom||"—")}</td><td>${esc(e.contact||"")}</td><td>${esc(e.email||"")}</td><td class="nw">${esc(fmtTel(e.mobile))}</td><td><a class="lnk" data-en="${e.id}">supprimer</a></td></tr>`).join("")||`<tr><td colspan="7" class="empty">Annuaire vide.</td></tr>`}</tbody></table></div>`}
+$("en_t").onblur=()=>{$("en_t").value=fmtTel($("en_t").value.trim())};
+$("en_b").onclick=()=>{if(!$("en_e").value.trim())return;const ks=[...document.querySelectorAll("#en_k [data-ec]:checked")].map(b=>+b.dataset.ec);if(!ks.length){alert("Cochez au moins une catégorie.");return}
+ const tel=fmtTel($("en_t").value.trim());if(tel&&!/^(0\d( \d{2}){4}|\+33 \d( \d{2}){4})$/.test(tel)){alert("Numéro de mobile invalide : utilisez le format 0X XX XX XX XX ou +33 X XX XX XX XX.");return}
+ adm(sb.from("entreprises").insert({corps_etat_id:$("en_c").value||null,categorie_ids:ks,entreprise:$("en_e").value.trim(),contact:$("en_n").value.trim()||null,email:$("en_m").value.trim()||null,mobile:tel||null}));["en_e","en_n","en_m","en_t"].forEach(i=>$(i).value="")};
 $("en_l").onclick=e=>{const a=e.target.closest("[data-en]");if(a&&confirm("Supprimer cette entreprise de l'annuaire ?"))adm(sb.from("entreprises").delete().eq("id",a.dataset.en))};
 // ===== Fenêtres : fermeture au clic à côté =====
 document.querySelectorAll("dialog").forEach(d=>{if(d.id==="dPw")return;d.addEventListener("click",e=>{if(e.target!==d)return;const r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close()})});
