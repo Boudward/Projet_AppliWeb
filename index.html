@@ -38,7 +38,7 @@ button.ic{background:none;color:var(--accent);border:1px solid var(--line);paddi
 .desc{white-space:pre-wrap;background:#f4f7f8;border-left:4px solid var(--accent);padding:10px 12px;margin:8px 0;font-size:16px}
 .btns{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.ep{border:1px dashed var(--line);padding:4px 10px 10px;margin:8px 0}
 .tl{font-size:13px;padding:3px 0;border-bottom:1px solid var(--line)}.tl span{color:var(--mute);margin-right:6px}.tl.nt{background:#f7fafb}
-header button#out{padding:6px 9px;line-height:0}
+header button#out,header button#sug{padding:6px 9px;line-height:0}header button#hlp{padding:6px 12px;font-weight:700;font-size:16px}
 #ver{color:var(--bg);font-size:11px;text-align:center;padding:14px}
 button.hb,button.hf{background:none;color:var(--mute);border:0;padding:0 3px;font-size:13px;font-weight:600}
 button.hb:hover,button.hf:hover{color:var(--accent)}button.hf.on{color:var(--accent)}
@@ -51,7 +51,7 @@ button.pb{text-align:left;padding:6px 8px;font-size:13px}
 <header><h1>Travaux & maintenance</h1><div id="hd" class="hide">
  <span id="who"></span>
  <select id="vas" class="hide" aria-label="Voir en tant que"><option value="">Vue admin</option><option value="demandeur">Voir en tant que Demandeur</option><option value="responsable_batiments">Voir en tant que Responsable bâtiments</option><option value="responsable_exploitation">Voir en tant que Responsable exploitation</option><option value="agent_travaux">Voir en tant que Agent bâtiment</option><option value="agent_exploitation">Voir en tant que Agent exploitation</option></select>
- <button id="adm" class="hide">Console admin</button><button id="out" title="Se déconnecter" aria-label="Se déconnecter"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button></div></header>
+ <button id="adm" class="hide">Console admin</button><button id="sug" title="Proposer une idée ou une amélioration" aria-label="Proposer une idée ou une amélioration"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg></button><button id="hlp" title="Notice d'utilisation" aria-label="Notice d'utilisation">?</button><button id="out" title="Se déconnecter" aria-label="Se déconnecter"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button></div></header>
 
 <section id="login">
  <h2 id="lt" style="margin-top:0">Connexion</h2>
@@ -81,6 +81,7 @@ button.pb{text-align:left;padding:6px 8px;font-size:13px}
   <div class="panel"><h3 style="margin-top:0">Demandes de compte</h3><div class="table"><table><thead><tr><th>Nom</th><th>Société / fonction</th><th>E-mail</th><th>Compte</th><th>Rôle à attribuer</th><th>Décision</th></tr></thead><tbody id="drows"></tbody></table></div><p class="msg" id="cmsg"></p></div>
   <div class="panel"><h3 style="margin-top:0">Catégories et corps d'état</h3>
    <div class="row"><select id="ac" aria-label="Catégorie"></select><input id="acn" placeholder="Nouveau corps d'état"><button id="acb">Ajouter</button></div><div id="clists" style="margin-top:12px"></div></div>
+  <div class="panel"><h3 style="margin-top:0">Suggestions des utilisateurs</h3><div id="sug_l"></div></div>
   <div class="panel"><h3 style="margin-top:0">Annuaire des entreprises</h3>
    <div class="row"><select id="en_c" aria-label="Corps d'état"></select><input id="en_e" placeholder="Entreprise"></div>
    <div id="en_k" style="margin-top:8px"></div><div class="row" style="margin-top:8px"><input id="en_n" placeholder="Chargé d'affaires"><input id="en_m" type="email" placeholder="E-mail"><input id="en_t" placeholder="Mobile"><button id="en_b">Ajouter</button><button class="sec hide" id="en_x">Annuler</button></div><div id="en_l" style="margin-top:12px"></div></div>
@@ -104,7 +105,11 @@ button.pb{text-align:left;padding:6px 8px;font-size:13px}
 <dialog id="dIv"><div id="ibody"></div></dialog>
 <dialog id="dJ"><h3 id="jt" style="margin-top:0"></h3><label for="jx">Justification (obligatoire)</label><textarea id="jx" rows="3"></textarea><p class="msg" id="jm"></p>
  <div class="row"><button id="jok">Valider</button><button class="sec" id="jno">Annuler</button></div></dialog>
-<footer id="ver" aria-hidden="true">Version 2.4 – 28/10/2026</footer>
+<dialog id="dS"><h2 style="margin-top:0">Une idée, une amélioration ?</h2><p class="meta">Votre message est transmis à l'administrateur de l'application.</p>
+ <label for="sugt">Type</label><select id="sugt"><option>Idée</option><option>Amélioration</option><option>Problème rencontré</option></select>
+ <label for="sugti">Titre (obligatoire)</label><input id="sugti"><label for="sugtx">Détail</label><textarea id="sugtx" rows="4"></textarea>
+ <p class="msg" id="sugm"></p><div class="row"><button id="sugb">Envoyer la suggestion</button><button class="sec" data-close>Fermer</button></div></dialog>
+<footer id="ver" aria-hidden="true">Version 2.5 – 29/10/2026</footer>
 <div id="pop" class="pop hide"></div>
 <dialog id="dPw"><h2 style="margin-top:0">Choisissez votre mot de passe</h2><label for="np1">Mot de passe (8 caractères minimum)</label><input id="np1" type="password" autocomplete="new-password"><p class="msg" id="pmsg"></p><button id="pwok">Enregistrer le mot de passe</button></dialog>
 <dialog id="dDet"><div id="tbody"></div></dialog>
@@ -202,7 +207,7 @@ async function loadAdmin(){
   <td><select data-u="${u.id}" data-f="role">${opts(ROLES)}</select></td>
   <td><button class="sec" data-u="${u.id}" data-f="actif" data-v="${!u.actif}"><span class="${u.actif?"on":"off"}">${u.actif?"Actif – désactiver":"Inactif – activer"}</span></button></td></tr>`).join("");
  (data||[]).forEach(u=>{const s=document.querySelector(`select[data-u="${u.id}"]`);if(s)s.value=u.role});
- $("at").innerHTML=sOpts();$("ac").innerHTML=catOpts();renderAnn();
+ $("at").innerHTML=sOpts();$("ac").innerHTML=catOpts();renderAnn();renderSug();
  $("clists").innerHTML=cats.map(c=>`<p><b>${esc(c.nom)}</b><br>${corps.filter(x=>x.categorie_id===c.id).map(x=>`${esc(x.nom)} <a class="lnk" data-del="corps_etat" data-id="${x.id}">supprimer</a>`).join(" · ")}</p>`).join("");
  $("lists").innerHTML=sites.map(s=>`<p><b>${esc(s.nom)}</b> <a class="lnk" data-del="sites" data-id="${s.id}">supprimer</a><br>${trib.filter(t=>t.site_id===s.id).map(t=>`${esc(t.nom)} <a class="lnk" data-del="tribunes" data-id="${t.id}">supprimer</a>`).join(" · ")||"Aucune zone/tribune"}</p>`).join("");
 }
@@ -434,6 +439,18 @@ $("en_l").onclick=e=>{const a=e.target.closest("[data-en],[data-ee]");if(!a)retu
  document.querySelectorAll("#en_k [data-ec]").forEach(b=>b.checked=!(x.categorie_ids||[]).length||x.categorie_ids.includes(+b.dataset.ec));fillCorpsAnn();
  $("en_c").value=x.corps_etat_id||"";$("en_e").value=x.entreprise;$("en_n").value=x.contact||"";$("en_m").value=x.email||"";$("en_t").value=fmtTel(x.mobile);
  $("en_b").textContent="Enregistrer les modifications";$("en_x").classList.remove("hide");$("en_e").scrollIntoView({block:"center"})};
+const NOTICE={demandeur:"notice_demandeur.html",responsable_batiments:"notice_responsable.html",responsable_exploitation:"notice_responsable.html",agent_travaux:"notice_agent.html",agent_exploitation:"notice_agent.html",admin:"notice_administrateur.html"};
+$("hlp").onclick=()=>window.open(NOTICE[role()]||"notice_demandeur.html","_blank");
+$("sug").onclick=()=>{$("sugt").value="Idée";$("sugti").value="";$("sugtx").value="";$("sugm").textContent="";$("sugb").classList.remove("hide");$("dS").showModal()};
+$("sugb").onclick=async()=>{const ti=$("sugti").value.trim();$("sugm").style.color="";if(!ti){$("sugm").textContent="Le titre est obligatoire.";return}
+ const {error}=await sb.from("suggestions").insert({auteur_nom:nm(),role:me.role,type:$("sugt").value,titre:ti,texte:$("sugtx").value.trim()||null});
+ if(error){$("sugm").textContent="Envoi impossible : "+error.message;return}
+ $("sugm").style.color="var(--ok)";$("sugm").textContent="Merci, votre suggestion a été transmise à l'administrateur.";$("sugb").classList.add("hide")};
+async function renderSug(){const {data}=await sb.from("suggestions").select("*").order("created_at",{ascending:false});
+ $("sug_l").innerHTML=(data||[]).map(x=>`<div class="suivi"><b>${x.traitee?"✔ ":""}${esc(x.type)}</b> – ${esc(x.titre)} <small>(${esc(x.auteur_nom||"")} · ${esc(ROLES[x.role]||"")} · ${tlTime(x.created_at)})</small>${x.texte?`<br>${esc(x.texte)}`:""}<br><a class="lnk" data-sv="${x.id}" data-v="${!x.traitee}">${x.traitee?"Marquer non traitée":"Marquer traitée"}</a> · <a class="lnk" data-sd="${x.id}">supprimer</a></div>`).join("")||`<p class="empty" style="padding:8px">Aucune suggestion.</p>`}
+$("sug_l").onclick=async e=>{const a=e.target.closest("[data-sv],[data-sd]");if(!a)return;
+ const q=a.dataset.sd?(confirm("Supprimer cette suggestion ?")?sb.from("suggestions").delete().eq("id",a.dataset.sd):null):sb.from("suggestions").update({traitee:a.dataset.v==="true"}).eq("id",a.dataset.sv);
+ if(q){await q;renderSug()}};
 $("rows2").onclick=$("rows").onclick;$("irows2").onclick=$("irows").onclick;
 // ===== Fenêtres : fermeture au clic à côté =====
 document.querySelectorAll("dialog").forEach(d=>{if(d.id==="dPw")return;d.addEventListener("click",e=>{if(e.target!==d)return;const r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close()})});
