@@ -32,6 +32,10 @@ td.nw{white-space:nowrap}td.tt{min-width:220px;overflow-wrap:anywhere}td.lc{min-
 tr.new td{font-weight:700}
 tr.urg td,tr.urg .tag{color:var(--bad)}
 tr.res{opacity:.7}tr.arc{opacity:.5}
+.tabrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}.acts{margin-left:auto;display:flex;gap:10px;flex-wrap:wrap}
+button.cta{background:var(--warn);font-weight:600}button.cta:hover{filter:brightness(.92)}
+table.rt{table-layout:fixed;width:auto;max-width:none}.rt th{position:relative;overflow:hidden;padding-right:12px}.rt td{overflow:hidden}.rt td.nw{text-overflow:ellipsis}.rt td.tt,.rt td.lc{overflow-wrap:anywhere}
+.rs{position:absolute;right:0;top:0;bottom:0;width:8px;cursor:col-resize;touch-action:none}.rs:hover,.rs:active{background:var(--accent);opacity:.4}
 header h1 small{font-size:12px;font-weight:400;opacity:.85;margin-left:8px}.gh{margin:22px 0 8px;color:var(--accent)}.gh small{color:var(--mute);font-weight:400}.s-refusee{color:var(--bad)}
 #dDet,#dIv{width:min(640px,94vw)}.dh{display:flex;justify-content:space-between;align-items:start;gap:10px}.dh h2{margin:0}.sub{color:var(--mute)}
 button.ic{background:none;color:var(--accent);border:1px solid var(--line);padding:3px 9px;font-size:17px}
@@ -49,7 +53,7 @@ button.hb:hover,button.hf:hover{color:var(--accent)}button.hf.on{color:var(--acc
 button.pb{text-align:left;padding:6px 8px;font-size:13px}
 .hide{display:none!important}a.lnk{color:var(--accent);cursor:pointer;text-decoration:underline}
 </style></head><body>
-<header><h1>Stades 3M - Travaux, Maintenance & Exploitation <small id="vers">v2.6</small></h1><div id="hd" class="hide">
+<header><h1>Stades 3M - Travaux, Maintenance & Exploitation <small id="vers">v2.7</small></h1><div id="hd" class="hide">
  <span id="who"></span>
  <select id="vas" class="hide" aria-label="Voir en tant que"><option value="">Vue admin</option><option value="demandeur">Voir en tant que Demandeur</option><option value="responsable_batiments">Voir en tant que Responsable bâtiments</option><option value="responsable_exploitation">Voir en tant que Responsable exploitation</option><option value="agent_travaux">Voir en tant que Agent bâtiment</option><option value="agent_exploitation">Voir en tant que Agent exploitation</option></select>
  <button id="adm" class="hide">Console admin</button><button id="sug" title="Proposer une idée ou une amélioration" aria-label="Proposer une idée ou une amélioration"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg></button><button id="hlp" title="Notice d'utilisation" aria-label="Notice d'utilisation">?</button><button id="out" title="Se déconnecter" aria-label="Se déconnecter"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button></div></header>
@@ -66,13 +70,14 @@ button.pb{text-align:left;padding:6px 8px;font-size:13px}
 
 <main id="app" class="hide">
  <div id="pending" class="panel hide">Votre compte est en attente d'activation par l'administrateur.</div>
- <div id="tabs" class="bar hide"><button class="btn" id="tabt">Tickets</button><button class="btn sec" id="tabi">Interventions</button></div>
- <div id="iv" class="hide"><div class="bar"><button class="btn" id="newint">Nouvelle intervention</button><button class="btn sec" id="coli">Colonnes</button></div>
-  <div class="table"><table><thead><tr id="ihr"></tr></thead><tbody id="irows"></tbody></table>
+ <div id="tabs" class="tabrow hide"><button class="btn" id="tabt">Tickets</button><button class="btn sec" id="tabi">Interventions</button>
+ <div class="acts"><button class="cta" id="new">Nouveau ticket</button><button class="cta hide" id="newint">Nouvelle intervention</button><button class="sec" id="colt">Colonnes</button><button class="sec hide" id="coli">Colonnes</button></div></div>
+ <div id="iv" class="hide">
+  <div class="table"><table class="rt" data-tb="i"><colgroup id="icg"></colgroup><thead><tr id="ihr"></tr></thead><tbody id="irows"></tbody></table>
   <div id="iempty" class="empty hide">Aucune intervention.</div></div>
-  <h3 id="ich" style="margin:24px 0 8px"></h3><div class="table"><table><thead><tr id="ihr2"></tr></thead><tbody id="irows2"></tbody></table><div id="iempty2" class="empty hide">Aucune intervention close.</div></div></div>
+  <h3 id="ich" style="margin:24px 0 8px"></h3><div class="table"><table class="rt" data-tb="i"><colgroup id="icg2"></colgroup><thead><tr id="ihr2"></tr></thead><tbody id="irows2"></tbody></table><div id="iempty2" class="empty hide">Aucune intervention close.</div></div></div>
  <div id="tk" class="hide">
-  <div class="bar"><button class="btn" id="new">Nouveau ticket</button><button class="btn sec" id="colt">Colonnes</button></div>
+  
   <div id="tkA"></div><h3 id="clh" class="hide" style="margin:30px 0 0"></h3><div id="tkC"></div>
   <p class="empty hide" id="agentmsg">Les interventions arriveront à l'étape suivante : cet espace est réservé aux agents.</p>
  </div>
@@ -108,7 +113,7 @@ button.pb{text-align:left;padding:6px 8px;font-size:13px}
  <label for="sugt">Type</label><select id="sugt"><option>Idée</option><option>Amélioration</option><option>Problème rencontré</option></select>
  <label for="sugti">Titre (obligatoire)</label><input id="sugti"><label for="sugtx">Détail</label><textarea id="sugtx" rows="4"></textarea>
  <p class="msg" id="sugm"></p><div class="row"><button id="sugb">Envoyer la suggestion</button><button class="sec" data-close>Fermer</button></div></dialog>
-<footer id="ver" aria-hidden="true">Version 2.6 – 29/10/2026</footer>
+<footer id="ver" aria-hidden="true">Version 2.7 – 29/10/2026</footer>
 <div id="pop" class="pop hide"></div><div id="cpop" class="pop hide"></div>
 <dialog id="dPw"><h2 style="margin-top:0">Choisissez votre mot de passe</h2><label for="np1">Mot de passe (8 caractères minimum)</label><input id="np1" type="password" autocomplete="new-password"><p class="msg" id="pmsg"></p><button id="pwok">Enregistrer le mot de passe</button></dialog>
 <dialog id="dDet"><div id="tbody"></div></dialog>
@@ -175,8 +180,7 @@ $("ns").onchange=()=>$("nt2").innerHTML=tOpts($("ns").value);
 function render(){
  const r=role(),isAgent=r.startsWith("agent");
  const inAdm=!$("ad").classList.contains("hide");renderIv();$("tk").classList.toggle("hide",inAdm||tab!=="t");$("iv").classList.toggle("hide",inAdm||tab!=="i");$("adm").textContent=inAdm?"Retour":"Console admin";
- document.querySelector("#tk .bar").classList.toggle("hide",isAgent);$("tkA").classList.toggle("hide",isAgent);$("tkC").classList.toggle("hide",isAgent);$("agentmsg").classList.toggle("hide",!isAgent);
- $("new").classList.toggle("hide",isAgent);
+ $("tkA").classList.toggle("hide",isAgent);$("tkC").classList.toggle("hide",isAgent);$("agentmsg").classList.toggle("hide",!isAgent);
  const baseL=tk.filter(x=>canSee(x,r));TB.t.base=baseL;const list=sortFilt(baseL,"t");
  const act=list.filter(x=>!done(x)),clo=list.filter(done);
  $("tkA").innerHTML=tkGroups(act,"Aucun ticket ne correspond à ces filtres.",3);
@@ -249,6 +253,8 @@ const ICOLS={
  cat:{l:"Catégorie / corps d'état",c:"lc",v:catLab,k:x=>catLab(x).toLowerCase()},
  fin:{l:"Fin prévue",c:"nw",v:x=>fdate(x.echeance),k:x=>ts(x.echeance)},att:{...mk("Attribué à / entreprise",attV),c:"lc"},
  etat:{l:"État",c:"nw",v:x=>ET[x.etat],k:x=>Object.keys(ET).indexOf(x.etat),h:x=>`<span class="tag">${ET[x.etat]}</span>`}};
+Object.entries({ref:85,titre:280,date:105,priorite:105,site:130,zone:140,local:120,corps:160,par:150,fin:105,statut:115}).forEach(([k,w])=>COLS[k].w=w);
+Object.entries({ref:100,titre:280,site:130,zone:140,local:120,cat:230,fin:105,att:220,etat:150}).forEach(([k,w])=>ICOLS[k].w=w);
 const CB={t:COLS,i:ICOLS},redraw=tb=>tb==="t"?render():renderIv();
 const done=x=>["resolue","refusee","archivee"].includes(x.statut);
 const rowCls=x=>(x.statut==="nouvelle"?"new ":"")+(x.priorite==="urgente"&&!done(x)?"urg ":"")+(["resolue","refusee"].includes(x.statut)?"res":x.statut==="archivee"?"arc":"");
@@ -257,26 +263,36 @@ function sortFilt(l,tb){const T=TB[tb],C=CB[tb];l=l.filter(x=>Object.entries(T.f
 const VIS={},vkey=tb=>`colvis:${tb}:${me.id}`;
 const visOf=tb=>VIS[tb]||(VIS[tb]=(()=>{try{return JSON.parse(localStorage.getItem(vkey(tb)))||{}}catch(e){return{}}})());
 const saveVis=tb=>{try{localStorage.setItem(vkey(tb),JSON.stringify(VIS[tb]))}catch(e){}};
+const WID={},wkey=tb=>`colw:${tb}:${me.id}`;
+const wOf=tb=>WID[tb]||(WID[tb]=(()=>{try{return JSON.parse(localStorage.getItem(wkey(tb)))||{}}catch(e){return{}}})());
+const saveW=tb=>{try{localStorage.setItem(wkey(tb),JSON.stringify(WID[tb]))}catch(e){}};
 const visCols=tb=>Object.entries(CB[tb]).filter(([k,c])=>c.lock||!visOf(tb)[k]);
-const thHtml=tb=>{const T=TB[tb];return visCols(tb).map(([k,c])=>`<th aria-sort="${T.s.k===k?(T.s.d>0?"ascending":"descending"):"none"}"><button class="hb" data-s="${k}">${c.l}${T.s.k===k?(T.s.d>0?" ▲":" ▼"):""}</button><button class="hf${T.f[k]?" on":""}" data-f="${k}" aria-label="Filtrer la colonne ${c.l}">${T.f[k]?"⧩":"▾"}</button></th>`).join("")};
+const tw=tb=>visCols(tb).reduce((a,[k,c])=>a+(wOf(tb)[k]||c.w||120),0);
+const colsHtml=tb=>visCols(tb).map(([k,c])=>`<col data-tb="${tb}" data-k="${k}" style="width:${wOf(tb)[k]||c.w||120}px">`).join("");
+const thHtml=tb=>{const T=TB[tb];return visCols(tb).map(([k,c])=>`<th aria-sort="${T.s.k===k?(T.s.d>0?"ascending":"descending"):"none"}"><button class="hb" data-s="${k}">${c.l}${T.s.k===k?(T.s.d>0?" ▲":" ▼"):""}</button><button class="hf${T.f[k]?" on":""}" data-f="${k}" aria-label="Filtrer la colonne ${c.l}">${T.f[k]?"⧩":"▾"}</button><span class="rs" data-tb="${tb}" data-r="${k}" title="Glisser pour ajuster la largeur"></span></th>`).join("")};
 const rowH=(tb,x,cls,attr)=>`<tr class="c ${cls}" ${attr}>${visCols(tb).map(([k,c])=>`<td class="${c.c||""}">${c.h?c.h(x):esc(c.v(x))}</td>`).join("")}</tr>`;
-function head(tb){if(tb==="i"){$("ihr").innerHTML=thHtml("i");$("ihr2").innerHTML=thHtml("i")}}
+function head(tb){if(tb==="i"){$("ihr").innerHTML=thHtml("i");$("ihr2").innerHTML=thHtml("i");$("icg").innerHTML=$("icg2").innerHTML=colsHtml("i");document.querySelectorAll('table[data-tb="i"]').forEach(t=>t.style.width=tw("i")+"px")}}
 const hdClick=tb=>e=>{const b=e.target.closest("button");if(!b)return;const T=TB[tb];
  if(b.dataset.s){T.s=T.s.k===b.dataset.s?{k:T.s.k,d:-T.s.d}:{k:b.dataset.s,d:1};redraw(tb)}else openPop(tb,b.dataset.f,b)};
 $("ihr").onclick=$("ihr2").onclick=hdClick("i");
 const catGroups=()=>[...cats.filter(c=>c.domaine==="exploitation"),...cats.filter(c=>c.domaine==="batiments"),...cats.filter(c=>c.domaine!=="exploitation"&&c.domaine!=="batiments"),{id:null,nom:"Sans catégorie"}];
 function tkGroups(list,msg,lvl){const o=catGroups().map(g=>{const l=list.filter(x=>(x.categorie_id||null)===g.id);if(!l.length)return"";
- return `<h${lvl} class="gh">${esc(g.nom)} <small>(${l.length})</small></h${lvl}><div class="table"><table><thead><tr>${thHtml("t")}</tr></thead><tbody>${l.map(x=>rowH("t",x,rowCls(x),`data-id="${x.id}"`)).join("")}</tbody></table></div>`}).join("");
+ return `<h${lvl} class="gh">${esc(g.nom)} <small>(${l.length})</small></h${lvl}><div class="table"><table class="rt" data-tb="t" style="width:${tw("t")}px"><colgroup>${colsHtml("t")}</colgroup><thead><tr>${thHtml("t")}</tr></thead><tbody>${l.map(x=>rowH("t",x,rowCls(x),`data-id="${x.id}"`)).join("")}</tbody></table></div>`}).join("");
  return o||(msg?`<p class="empty">${msg}</p>`:"")}
 const tkClick=e=>{if(e.target.closest("button.hb,button.hf"))return hdClick("t")(e);const tr=e.target.closest("tr.c");if(tr)openDet(+tr.dataset.id)};
 $("tkA").onclick=$("tkC").onclick=tkClick;
 let cpTb=null;
 function openCols(tb,btn){const p=$("cpop");if(!p.classList.contains("hide")&&cpTb===tb){p.classList.add("hide");return}
- cpTb=tb;const V=visOf(tb);p.innerHTML=`<b style="font-size:13px">Colonnes affichées</b>`+Object.entries(CB[tb]).map(([k,c])=>`<label class="ck"><input type="checkbox" data-c="${k}"${!V[k]||c.lock?" checked":""}${c.lock?" disabled":""}> ${esc(c.l)}</label>`).join("")+`<button class="sec pb" data-all>Tout afficher</button>`;
+ cpTb=tb;const V=visOf(tb);p.innerHTML=`<b style="font-size:13px">Colonnes affichées</b>`+Object.entries(CB[tb]).map(([k,c])=>`<label class="ck"><input type="checkbox" data-c="${k}"${!V[k]||c.lock?" checked":""}${c.lock?" disabled":""}> ${esc(c.l)}</label>`).join("")+`<button class="sec pb" data-all>Tout afficher</button><button class="sec pb" data-rw>Réinitialiser les largeurs</button>`;
  const r=btn.getBoundingClientRect();p.style.top=(r.bottom+scrollY+4)+"px";p.style.left=Math.max(8,Math.min(r.left+scrollX,innerWidth-275))+"px";p.classList.remove("hide")}
 $("cpop").onchange=e=>{const k=e.target.dataset.c;if(!k)return;const V=visOf(cpTb);if(e.target.checked)delete V[k];else{V[k]=true;delete TB[cpTb].f[k]}saveVis(cpTb);redraw(cpTb)};
-$("cpop").onclick=e=>{if(!e.target.closest("[data-all]"))return;const V=visOf(cpTb);Object.keys(V).forEach(k=>delete V[k]);saveVis(cpTb);document.querySelectorAll("#cpop [data-c]").forEach(b=>b.checked=true);redraw(cpTb)};
+$("cpop").onclick=e=>{if(e.target.closest("[data-rw]")){WID[cpTb]={};saveW(cpTb);redraw(cpTb);return}if(!e.target.closest("[data-all]"))return;const V=visOf(cpTb);Object.keys(V).forEach(k=>delete V[k]);saveVis(cpTb);document.querySelectorAll("#cpop [data-c]").forEach(b=>b.checked=true);redraw(cpTb)};
 $("colt").onclick=e=>openCols("t",e.currentTarget);$("coli").onclick=e=>openCols("i",e.currentTarget);
+function setW(tb,k,w){wOf(tb)[k]=w;document.querySelectorAll(`col[data-tb="${tb}"][data-k="${k}"]`).forEach(c=>c.style.width=w+"px");document.querySelectorAll(`table[data-tb="${tb}"]`).forEach(t=>t.style.width=tw(tb)+"px")}
+document.addEventListener("pointerdown",e=>{const h=e.target.closest(".rs");if(!h)return;e.preventDefault();
+ const tb=h.dataset.tb,k=h.dataset.r,x0=e.clientX,w0=h.parentElement.getBoundingClientRect().width;
+ const mv=ev=>setW(tb,k,Math.max(60,Math.round(w0+ev.clientX-x0))),up=()=>{document.removeEventListener("pointermove",mv);document.removeEventListener("pointerup",up);saveW(tb)};
+ document.addEventListener("pointermove",mv);document.addEventListener("pointerup",up)});
 function openPop(tb,k,btn){const T=TB[tb],C=CB[tb],c=C[k],o=T.base.filter(x=>Object.entries(T.f).every(([j,s])=>j===k||s.has(C[j].v(x)))).sort((a,b)=>(c.k(a)>c.k(b))-(c.k(a)<c.k(b)));
  const vals=[...new Set(o.map(c.v))],cur=T.f[k]||new Set(vals),p=$("pop");p.dataset.k=k;p.dataset.tb=tb;
  p.innerHTML=`<button class="sec pb" data-o="asc">Trier du plus petit au plus grand (A → Z)</button><button class="sec pb" data-o="desc">Trier du plus grand au plus petit (Z → A)</button>
@@ -363,8 +379,10 @@ $("tbody").onclick=async e=>{const b=e.target.closest("[data-edit],[data-st],[da
 // ===== INTERVENTIONS =====
 function renderIv(){const r=role(),ag=isAg(),edt=r!=="demandeur"&&!ag;
  if(ag)tab="i";if(r==="demandeur")tab="t";
- $("tabs").classList.toggle("hide",r==="demandeur");$("tabt").classList.toggle("hide",ag);
- $("tabt").classList.toggle("sec",tab!=="t");$("tabi").classList.toggle("sec",tab!=="i");$("newint").classList.toggle("hide",!edt);
+ const inAdm=!$("ad").classList.contains("hide");$("tabs").classList.toggle("hide",inAdm);
+ $("tabt").classList.toggle("hide",ag||r==="demandeur");$("tabi").classList.toggle("hide",r==="demandeur");
+ $("tabt").classList.toggle("sec",tab!=="t");$("tabi").classList.toggle("sec",tab!=="i");
+ $("new").classList.toggle("hide",tab!=="t"||ag);$("colt").classList.toggle("hide",tab!=="t"||ag);$("newint").classList.toggle("hide",tab!=="i"||!edt);$("coli").classList.toggle("hide",tab!=="i");
  const base=ints.filter(i=>ag?(i.agent_ids||[]).includes(me.id):peutEditer(i,r));TB.i.base=base;
  const l=sortFilt(base,"i"),cl=i=>["terminee","annulee"].includes(i.etat),act=l.filter(i=>!cl(i)),clo=l.filter(cl);head("i");
  $("iempty").classList.toggle("hide",act.length>0);$("iempty2").classList.toggle("hide",clo.length>0);$("ich").textContent=`Interventions closes – terminées, annulées (${clo.length})`;
