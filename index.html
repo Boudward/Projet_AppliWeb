@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Travaux & maintenance</title>
+<title>Stades 3M</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0/dist/umd/supabase.min.js"></script>
 <style>
@@ -31,7 +31,8 @@ th{white-space:nowrap}
 td.nw{white-space:nowrap}td.tt{min-width:220px;overflow-wrap:anywhere}td.lc{min-width:180px;overflow-wrap:anywhere}
 tr.new td{font-weight:700}
 tr.urg td,tr.urg .tag{color:var(--bad)}
-tr.res{opacity:.7}tr.arc{opacity:.5}.s-refusee{color:var(--bad)}
+tr.res{opacity:.7}tr.arc{opacity:.5}
+header h1 small{font-size:12px;font-weight:400;opacity:.85;margin-left:8px}.gh{margin:22px 0 8px;color:var(--accent)}.gh small{color:var(--mute);font-weight:400}.s-refusee{color:var(--bad)}
 #dDet,#dIv{width:min(640px,94vw)}.dh{display:flex;justify-content:space-between;align-items:start;gap:10px}.dh h2{margin:0}.sub{color:var(--mute)}
 button.ic{background:none;color:var(--accent);border:1px solid var(--line);padding:3px 9px;font-size:17px}
 .big{font-size:17px;margin:10px 0 4px}.meta{color:var(--mute);font-size:13px;margin:4px 0}
@@ -48,7 +49,7 @@ button.hb:hover,button.hf:hover{color:var(--accent)}button.hf.on{color:var(--acc
 button.pb{text-align:left;padding:6px 8px;font-size:13px}
 .hide{display:none!important}a.lnk{color:var(--accent);cursor:pointer;text-decoration:underline}
 </style></head><body>
-<header><h1>Travaux & maintenance</h1><div id="hd" class="hide">
+<header><h1>Stades 3M - Travaux, Maintenance & Exploitation <small id="vers">v2.6</small></h1><div id="hd" class="hide">
  <span id="who"></span>
  <select id="vas" class="hide" aria-label="Voir en tant que"><option value="">Vue admin</option><option value="demandeur">Voir en tant que Demandeur</option><option value="responsable_batiments">Voir en tant que Responsable bâtiments</option><option value="responsable_exploitation">Voir en tant que Responsable exploitation</option><option value="agent_travaux">Voir en tant que Agent bâtiment</option><option value="agent_exploitation">Voir en tant que Agent exploitation</option></select>
  <button id="adm" class="hide">Console admin</button><button id="sug" title="Proposer une idée ou une amélioration" aria-label="Proposer une idée ou une amélioration"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg></button><button id="hlp" title="Notice d'utilisation" aria-label="Notice d'utilisation">?</button><button id="out" title="Se déconnecter" aria-label="Se déconnecter"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button></div></header>
@@ -66,15 +67,13 @@ button.pb{text-align:left;padding:6px 8px;font-size:13px}
 <main id="app" class="hide">
  <div id="pending" class="panel hide">Votre compte est en attente d'activation par l'administrateur.</div>
  <div id="tabs" class="bar hide"><button class="btn" id="tabt">Tickets</button><button class="btn sec" id="tabi">Interventions</button></div>
- <div id="iv" class="hide"><div class="bar"><button class="btn" id="newint">Nouvelle intervention</button></div>
+ <div id="iv" class="hide"><div class="bar"><button class="btn" id="newint">Nouvelle intervention</button><button class="btn sec" id="coli">Colonnes</button></div>
   <div class="table"><table><thead><tr id="ihr"></tr></thead><tbody id="irows"></tbody></table>
   <div id="iempty" class="empty hide">Aucune intervention.</div></div>
   <h3 id="ich" style="margin:24px 0 8px"></h3><div class="table"><table><thead><tr id="ihr2"></tr></thead><tbody id="irows2"></tbody></table><div id="iempty2" class="empty hide">Aucune intervention close.</div></div></div>
  <div id="tk" class="hide">
-  <div class="bar"><button class="btn" id="new">Nouveau ticket</button></div>
-  <div class="table"><table><thead><tr id="hr"></tr></thead><tbody id="rows"></tbody></table>
-  <div id="empty" class="empty hide">Aucun ticket ne correspond à ces filtres.</div></div>
-  <h3 id="clh" style="margin:24px 0 8px"></h3><div class="table"><table><thead><tr id="hr2"></tr></thead><tbody id="rows2"></tbody></table><div id="empty2" class="empty hide">Aucun ticket clos.</div></div>
+  <div class="bar"><button class="btn" id="new">Nouveau ticket</button><button class="btn sec" id="colt">Colonnes</button></div>
+  <div id="tkA"></div><h3 id="clh" class="hide" style="margin:30px 0 0"></h3><div id="tkC"></div>
   <p class="empty hide" id="agentmsg">Les interventions arriveront à l'étape suivante : cet espace est réservé aux agents.</p>
  </div>
  <div id="ad" class="hide">
@@ -85,7 +84,7 @@ button.pb{text-align:left;padding:6px 8px;font-size:13px}
   <div class="panel"><h3 style="margin-top:0">Annuaire des entreprises</h3>
    <div class="row"><select id="en_c" aria-label="Corps d'état"></select><input id="en_e" placeholder="Entreprise"></div>
    <div id="en_k" style="margin-top:8px"></div><div class="row" style="margin-top:8px"><input id="en_n" placeholder="Chargé d'affaires"><input id="en_m" type="email" placeholder="E-mail"><input id="en_t" placeholder="Mobile"><button id="en_b">Ajouter</button><button class="sec hide" id="en_x">Annuler</button></div><div id="en_l" style="margin-top:12px"></div></div>
-  <div class="panel"><h3 style="margin-top:0">Utilisateurs</h3><div class="table"><table><thead><tr><th>Nom</th><th>Société / fonction</th><th>E-mail</th><th>Rôle</th><th>Compte</th></tr></thead><tbody id="urows"></tbody></table></div></div>
+  <div class="panel"><h3 style="margin-top:0">Utilisateurs</h3><div class="table"><table><thead><tr><th>Nom</th><th>Société / fonction</th><th>E-mail</th><th>Rôle</th><th>Site par défaut</th><th>Compte</th></tr></thead><tbody id="urows"></tbody></table></div></div>
   <div class="panel"><h3 style="margin-top:0">Sites et zones/tribunes</h3>
    <div class="row"><input id="as" placeholder="Nom du nouveau site"><button id="asb">Ajouter le site</button></div>
    <div class="row" style="margin-top:8px"><select id="at"></select><input id="atn" placeholder="Nom de la nouvelle zone/tribune"><button id="atb">Ajouter la zone/tribune</button></div>
@@ -109,8 +108,8 @@ button.pb{text-align:left;padding:6px 8px;font-size:13px}
  <label for="sugt">Type</label><select id="sugt"><option>Idée</option><option>Amélioration</option><option>Problème rencontré</option></select>
  <label for="sugti">Titre (obligatoire)</label><input id="sugti"><label for="sugtx">Détail</label><textarea id="sugtx" rows="4"></textarea>
  <p class="msg" id="sugm"></p><div class="row"><button id="sugb">Envoyer la suggestion</button><button class="sec" data-close>Fermer</button></div></dialog>
-<footer id="ver" aria-hidden="true">Version 2.5 – 29/10/2026</footer>
-<div id="pop" class="pop hide"></div>
+<footer id="ver" aria-hidden="true">Version 2.6 – 29/10/2026</footer>
+<div id="pop" class="pop hide"></div><div id="cpop" class="pop hide"></div>
 <dialog id="dPw"><h2 style="margin-top:0">Choisissez votre mot de passe</h2><label for="np1">Mot de passe (8 caractères minimum)</label><input id="np1" type="password" autocomplete="new-password"><p class="msg" id="pmsg"></p><button id="pwok">Enregistrer le mot de passe</button></dialog>
 <dialog id="dDet"><div id="tbody"></div></dialog>
 
@@ -176,20 +175,18 @@ $("ns").onchange=()=>$("nt2").innerHTML=tOpts($("ns").value);
 function render(){
  const r=role(),isAgent=r.startsWith("agent");
  const inAdm=!$("ad").classList.contains("hide");renderIv();$("tk").classList.toggle("hide",inAdm||tab!=="t");$("iv").classList.toggle("hide",inAdm||tab!=="i");$("adm").textContent=inAdm?"Retour":"Console admin";
- document.querySelector("#tk .bar").classList.toggle("hide",isAgent);document.querySelector("#tk .table").classList.toggle("hide",isAgent);$("agentmsg").classList.toggle("hide",!isAgent);
+ document.querySelector("#tk .bar").classList.toggle("hide",isAgent);$("tkA").classList.toggle("hide",isAgent);$("tkC").classList.toggle("hide",isAgent);$("agentmsg").classList.toggle("hide",!isAgent);
  $("new").classList.toggle("hide",isAgent);
- const baseL=tk.filter(x=>canSee(x,r));
- TB.t.base=baseL;const list=sortFilt(baseL,"t");head("t");
- const act=list.filter(x=>!done(x)),clo=list.filter(done);$("empty").classList.toggle("hide",act.length>0);$("empty2").classList.toggle("hide",clo.length>0);$("clh").textContent=`Tickets clos – résolus, refusés, archivés (${clo.length})`;
- const rowT=x=>`<tr class="c ${rowCls(x)}" data-id="${x.id}"><td class="nw">${x.ref}</td><td class="tt">${esc(x.titre)}</td><td class="lc">${esc(siteN(x.site_id))}</td><td class="lc">${esc(tribN(x.tribune_id))}</td><td class="lc">${esc(x.local||"—")}</td><td class="lc">${esc(COLS.cat.v(x))}</td><td class="nw">${esc(x.demandeur_nom||"—")}</td><td class="nw">${x.fin_prevue?fdate(x.fin_prevue):"—"}</td><td class="nw"><span class="tag p-${x.priorite}">${PR[x.priorite]}</span></td><td class="nw"><span class="tag s-${x.statut}">${ST[x.statut]}</span></td><td class="nw">${new Date(x.created_at).toLocaleDateString("fr-FR")}</td></tr>`;
- $("rows").innerHTML=act.map(rowT).join("");$("rows2").innerHTML=clo.map(rowT).join("");
-}
+ const baseL=tk.filter(x=>canSee(x,r));TB.t.base=baseL;const list=sortFilt(baseL,"t");
+ const act=list.filter(x=>!done(x)),clo=list.filter(done);
+ $("tkA").innerHTML=tkGroups(act,"Aucun ticket ne correspond à ces filtres.",3);
+ $("clh").textContent=`Tickets clos – résolus, refusés, archivés (${clo.length})`;$("clh").classList.toggle("hide",!clo.length);
+ $("tkC").innerHTML=tkGroups(clo,"",4)}
 
-$("rows").onclick=e=>{const tr=e.target.closest("tr");if(tr)openDet(+tr.dataset.id)};
 
-$("new").onclick=()=>{$("fNew").reset();$("np").value="normale";$("nt2").innerHTML=tOpts($("ns").value);$("ncorps").innerHTML=corpsOpts($("ncat").value);$("nmsg").textContent="";$("dNew").showModal()};
+$("new").onclick=()=>{$("fNew").reset();$("np").value="normale";if(me.site_defaut_id&&sites.some(x=>x.id===me.site_defaut_id))$("ns").value=me.site_defaut_id;$("nt2").innerHTML=tOpts($("ns").value);$("ncorps").innerHTML=corpsOpts($("ncat").value);$("nmsg").textContent="";$("dNew").showModal()};
 $("fNew").onsubmit=async e=>{e.preventDefault();
- if(!$("ns").value||!$("nt2").value){$("nmsg").textContent="Site et tribune sont obligatoires.";return}
+ if(!$("ns").value||!$("nt2").value){$("nmsg").textContent="Site et zone/tribune sont obligatoires.";return}
  const {error}=await sb.from("tickets").insert({site_id:$("ns").value,tribune_id:$("nt2").value,local:$("nl").value||null,titre:$("nt").value,description:$("nd").value,priorite:$("np").value,categorie_id:$("ncat").value,corps_etat_id:$("ncorps").value});
  if(error){$("nmsg").textContent="Enregistrement impossible : "+error.message;return}
  $("dNew").close();load()};
@@ -204,7 +201,7 @@ async function loadAdmin(){
   <td>${a?`<button data-d="${d.id}" data-a="approuvee" data-e="${esc(d.email)}">Approuver</button> <button class="sec" data-d="${d.id}" data-a="refusee">Refuser</button>`:""} <button class="sec" data-d="${d.id}" data-a="suppr">Supprimer</button></td></tr>`}).join("")||`<tr><td colspan="6" class="empty">Aucune demande de compte.</td></tr>`;
  const {data}=await sb.from("profiles").select("*").order("created_at",{ascending:false});
  $("urows").innerHTML=(data||[]).map(u=>`<tr><td>${esc(u.prenom)} ${esc(u.nom)}</td><td>${esc(u.societe)} – ${esc(u.fonction)}</td><td>${esc(u.email)}</td>
-  <td><select data-u="${u.id}" data-f="role">${opts(ROLES)}</select></td>
+  <td><select data-u="${u.id}" data-f="role">${opts(ROLES)}</select></td><td><select data-u="${u.id}" data-f="site_defaut_id" aria-label="Site par défaut">${O([["","— Aucun —"],...sites.map(x=>[x.id,x.nom])],u.site_defaut_id)}</select></td>
   <td><button class="sec" data-u="${u.id}" data-f="actif" data-v="${!u.actif}"><span class="${u.actif?"on":"off"}">${u.actif?"Actif – désactiver":"Inactif – activer"}</span></button></td></tr>`).join("");
  (data||[]).forEach(u=>{const s=document.querySelector(`select[data-u="${u.id}"]`);if(s)s.value=u.role});
  $("at").innerHTML=sOpts();$("ac").innerHTML=catOpts();renderAnn();renderSug();
@@ -212,7 +209,7 @@ async function loadAdmin(){
  $("lists").innerHTML=sites.map(s=>`<p><b>${esc(s.nom)}</b> <a class="lnk" data-del="sites" data-id="${s.id}">supprimer</a><br>${trib.filter(t=>t.site_id===s.id).map(t=>`${esc(t.nom)} <a class="lnk" data-del="tribunes" data-id="${t.id}">supprimer</a>`).join(" · ")||"Aucune zone/tribune"}</p>`).join("");
 }
 async function adm(p){const {error}=await p;$("amsg").textContent=error?"Action impossible : "+error.message:"";await load();loadAdmin()}
-$("urows").onchange=e=>{const t=e.target;adm(sb.from("profiles").update({role:t.value}).eq("id",t.dataset.u))};
+$("urows").onchange=e=>{const t=e.target,f=t.dataset.f==="site_defaut_id"?"site_defaut_id":"role";adm(sb.from("profiles").update({[f]:f==="role"?t.value:(t.value?+t.value:null)}).eq("id",t.dataset.u))};
 $("urows").onclick=e=>{const b=e.target.closest("button");if(b)adm(sb.from("profiles").update({actif:b.dataset.v==="true"}).eq("id",b.dataset.u))};
 $("asb").onclick=()=>{if($("as").value.trim()){adm(sb.from("sites").insert({nom:$("as").value.trim()}));$("as").value=""}};
 $("atb").onclick=()=>{if($("atn").value.trim()&&$("at").value){adm(sb.from("tribunes").insert({site_id:$("at").value,nom:$("atn").value.trim()}));$("atn").value=""}};
@@ -232,33 +229,54 @@ $("pwok").onclick=async()=>{if($("np1").value.length<8){$("pmsg").textContent="8
  $("dPw").close();history.replaceState(null,"",location.pathname)};
 const TB={t:{f:{},s:{k:null,d:1},base:[]},i:{f:{},s:{k:null,d:1},base:[]}};
 const ts=d=>d?+new Date(d):0,mk=(l,v)=>({l,v,k:x=>String(v(x)).toLowerCase()});
+const catLab=x=>x.categorie_id?`${(cats.find(c=>c.id===x.categorie_id)||{}).nom||"?"} / ${(corps.find(c=>c.id===x.corps_etat_id)||{}).nom||"—"}`:"—";
+const refK=(x,o)=>{const [a,b,c]=x.ref.split("-").slice(o).map(Number);return a*1e8+b*1e6+c};
 const COLS={
- ref:{l:"N°",v:x=>x.ref,k:x=>{const [a,b,c]=x.ref.split("-").map(Number);return a*1e8+b*1e6+c}},
- titre:mk("Ticket",x=>x.titre),site:mk("Site",x=>siteN(x.site_id)),zone:mk("Zone/tribune",x=>tribN(x.tribune_id)),local:mk("Local",x=>x.local||"—"),
- cat:{l:"Catégorie / corps d'état",v:x=>x.categorie_id?`${(cats.find(c=>c.id===x.categorie_id)||{}).nom||"?"} / ${(corps.find(c=>c.id===x.corps_etat_id)||{}).nom||"—"}`:"—",k:x=>COLS.cat.v(x).toLowerCase()},
- par:mk("Demandeur",x=>x.demandeur_nom||"—"),
- fin:{l:"Fin prévue",v:x=>x.fin_prevue?fdate(x.fin_prevue):"—",k:x=>ts(x.fin_prevue)},
- priorite:{l:"Priorité",v:x=>PR[x.priorite],k:x=>["urgente","haute","normale","basse"].indexOf(x.priorite)},
- statut:{l:"Statut",v:x=>ST[x.statut],k:x=>Object.keys(ST).indexOf(x.statut)},
- date:{l:"Créé le",v:x=>new Date(x.created_at).toLocaleDateString("fr-FR"),k:x=>ts(x.created_at)}};
+ ref:{l:"N°",c:"nw",lock:1,v:x=>x.ref,k:x=>refK(x,0)},
+ titre:{...mk("Ticket",x=>x.titre),c:"tt",lock:1},
+ date:{l:"Créé le",c:"nw",v:x=>new Date(x.created_at).toLocaleDateString("fr-FR"),k:x=>ts(x.created_at)},
+ priorite:{l:"Priorité",c:"nw",v:x=>PR[x.priorite],k:x=>["urgente","haute","normale","basse"].indexOf(x.priorite),h:x=>`<span class="tag p-${x.priorite}">${PR[x.priorite]}</span>`},
+ site:{...mk("Site",x=>siteN(x.site_id)),c:"lc"},zone:{...mk("Zone/tribune",x=>tribN(x.tribune_id)),c:"lc"},local:{...mk("Local",x=>x.local||"—"),c:"lc"},
+ corps:{...mk("Corps d'état",x=>(corps.find(c=>c.id===x.corps_etat_id)||{}).nom||"—"),c:"lc"},
+ par:{...mk("Demandeur",x=>x.demandeur_nom||"—"),c:"nw"},
+ fin:{l:"Fin prévue",c:"nw",v:x=>x.fin_prevue?fdate(x.fin_prevue):"—",k:x=>ts(x.fin_prevue)},
+ statut:{l:"Statut",c:"nw",v:x=>ST[x.statut],k:x=>Object.keys(ST).indexOf(x.statut),h:x=>`<span class="tag s-${x.statut}">${ST[x.statut]}</span>`}};
 const attV=x=>{const en=ents.find(e=>e.id===x.entreprise_id);return [x.agents_noms,en?eLab(en):x.prestataire].filter(Boolean).join(" · ")||"—"};
 const ICOLS={
- ref:{l:"N°",v:x=>x.ref,k:x=>{const [,a,b,c]=x.ref.split("-").map(Number);return a*1e8+b*1e6+c}},
- titre:mk("Intervention",x=>x.titre),site:mk("Site",x=>siteN(x.site_id)),zone:mk("Zone/tribune",x=>tribN(x.tribune_id)),local:mk("Local",x=>x.local||"—"),
- cat:{l:"Catégorie / corps d'état",v:x=>COLS.cat.v(x),k:x=>COLS.cat.v(x).toLowerCase()},
- fin:{l:"Fin prévue",v:x=>fdate(x.echeance),k:x=>ts(x.echeance)},att:mk("Attribué à / entreprise",attV),
- etat:{l:"État",v:x=>ET[x.etat],k:x=>Object.keys(ET).indexOf(x.etat)}};
+ ref:{l:"N°",c:"nw",lock:1,v:x=>x.ref,k:x=>refK(x,1)},
+ titre:{...mk("Intervention",x=>x.titre),c:"tt",lock:1},
+ site:{...mk("Site",x=>siteN(x.site_id)),c:"lc"},zone:{...mk("Zone/tribune",x=>tribN(x.tribune_id)),c:"lc"},local:{...mk("Local",x=>x.local||"—"),c:"lc"},
+ cat:{l:"Catégorie / corps d'état",c:"lc",v:catLab,k:x=>catLab(x).toLowerCase()},
+ fin:{l:"Fin prévue",c:"nw",v:x=>fdate(x.echeance),k:x=>ts(x.echeance)},att:{...mk("Attribué à / entreprise",attV),c:"lc"},
+ etat:{l:"État",c:"nw",v:x=>ET[x.etat],k:x=>Object.keys(ET).indexOf(x.etat),h:x=>`<span class="tag">${ET[x.etat]}</span>`}};
 const CB={t:COLS,i:ICOLS},redraw=tb=>tb==="t"?render():renderIv();
 const done=x=>["resolue","refusee","archivee"].includes(x.statut);
 const rowCls=x=>(x.statut==="nouvelle"?"new ":"")+(x.priorite==="urgente"&&!done(x)?"urg ":"")+(["resolue","refusee"].includes(x.statut)?"res":x.statut==="archivee"?"arc":"");
 function sortFilt(l,tb){const T=TB[tb],C=CB[tb];l=l.filter(x=>Object.entries(T.f).every(([k,s])=>s.has(C[k].v(x))));
  if(!T.s.k)return l;const f=C[T.s.k].k;return [...l].sort((a,b)=>((f(a)>f(b))-(f(a)<f(b)))*T.s.d)}
-function head(tb){const T=TB[tb],C=CB[tb],z=tb==="t"?"":"i";
- $(z+"hr").innerHTML=Object.entries(C).map(([k,c])=>`<th aria-sort="${T.s.k===k?(T.s.d>0?"ascending":"descending"):"none"}"><button class="hb" data-s="${k}">${c.l}${T.s.k===k?(T.s.d>0?" ▲":" ▼"):""}</button><button class="hf${T.f[k]?" on":""}" data-f="${k}" aria-label="Filtrer la colonne ${c.l}">${T.f[k]?"⧩":"▾"}</button></th>`).join("");
- $(z+"hr2").innerHTML=Object.values(C).map(c=>`<th>${c.l}</th>`).join("")}
+const VIS={},vkey=tb=>`colvis:${tb}:${me.id}`;
+const visOf=tb=>VIS[tb]||(VIS[tb]=(()=>{try{return JSON.parse(localStorage.getItem(vkey(tb)))||{}}catch(e){return{}}})());
+const saveVis=tb=>{try{localStorage.setItem(vkey(tb),JSON.stringify(VIS[tb]))}catch(e){}};
+const visCols=tb=>Object.entries(CB[tb]).filter(([k,c])=>c.lock||!visOf(tb)[k]);
+const thHtml=tb=>{const T=TB[tb];return visCols(tb).map(([k,c])=>`<th aria-sort="${T.s.k===k?(T.s.d>0?"ascending":"descending"):"none"}"><button class="hb" data-s="${k}">${c.l}${T.s.k===k?(T.s.d>0?" ▲":" ▼"):""}</button><button class="hf${T.f[k]?" on":""}" data-f="${k}" aria-label="Filtrer la colonne ${c.l}">${T.f[k]?"⧩":"▾"}</button></th>`).join("")};
+const rowH=(tb,x,cls,attr)=>`<tr class="c ${cls}" ${attr}>${visCols(tb).map(([k,c])=>`<td class="${c.c||""}">${c.h?c.h(x):esc(c.v(x))}</td>`).join("")}</tr>`;
+function head(tb){if(tb==="i"){$("ihr").innerHTML=thHtml("i");$("ihr2").innerHTML=thHtml("i")}}
 const hdClick=tb=>e=>{const b=e.target.closest("button");if(!b)return;const T=TB[tb];
  if(b.dataset.s){T.s=T.s.k===b.dataset.s?{k:T.s.k,d:-T.s.d}:{k:b.dataset.s,d:1};redraw(tb)}else openPop(tb,b.dataset.f,b)};
-$("hr").onclick=hdClick("t");$("ihr").onclick=hdClick("i");
+$("ihr").onclick=$("ihr2").onclick=hdClick("i");
+const catGroups=()=>[...cats.filter(c=>c.domaine==="exploitation"),...cats.filter(c=>c.domaine==="batiments"),...cats.filter(c=>c.domaine!=="exploitation"&&c.domaine!=="batiments"),{id:null,nom:"Sans catégorie"}];
+function tkGroups(list,msg,lvl){const o=catGroups().map(g=>{const l=list.filter(x=>(x.categorie_id||null)===g.id);if(!l.length)return"";
+ return `<h${lvl} class="gh">${esc(g.nom)} <small>(${l.length})</small></h${lvl}><div class="table"><table><thead><tr>${thHtml("t")}</tr></thead><tbody>${l.map(x=>rowH("t",x,rowCls(x),`data-id="${x.id}"`)).join("")}</tbody></table></div>`}).join("");
+ return o||(msg?`<p class="empty">${msg}</p>`:"")}
+const tkClick=e=>{if(e.target.closest("button.hb,button.hf"))return hdClick("t")(e);const tr=e.target.closest("tr.c");if(tr)openDet(+tr.dataset.id)};
+$("tkA").onclick=$("tkC").onclick=tkClick;
+let cpTb=null;
+function openCols(tb,btn){const p=$("cpop");if(!p.classList.contains("hide")&&cpTb===tb){p.classList.add("hide");return}
+ cpTb=tb;const V=visOf(tb);p.innerHTML=`<b style="font-size:13px">Colonnes affichées</b>`+Object.entries(CB[tb]).map(([k,c])=>`<label class="ck"><input type="checkbox" data-c="${k}"${!V[k]||c.lock?" checked":""}${c.lock?" disabled":""}> ${esc(c.l)}</label>`).join("")+`<button class="sec pb" data-all>Tout afficher</button>`;
+ const r=btn.getBoundingClientRect();p.style.top=(r.bottom+scrollY+4)+"px";p.style.left=Math.max(8,Math.min(r.left+scrollX,innerWidth-275))+"px";p.classList.remove("hide")}
+$("cpop").onchange=e=>{const k=e.target.dataset.c;if(!k)return;const V=visOf(cpTb);if(e.target.checked)delete V[k];else{V[k]=true;delete TB[cpTb].f[k]}saveVis(cpTb);redraw(cpTb)};
+$("cpop").onclick=e=>{if(!e.target.closest("[data-all]"))return;const V=visOf(cpTb);Object.keys(V).forEach(k=>delete V[k]);saveVis(cpTb);document.querySelectorAll("#cpop [data-c]").forEach(b=>b.checked=true);redraw(cpTb)};
+$("colt").onclick=e=>openCols("t",e.currentTarget);$("coli").onclick=e=>openCols("i",e.currentTarget);
 function openPop(tb,k,btn){const T=TB[tb],C=CB[tb],c=C[k],o=T.base.filter(x=>Object.entries(T.f).every(([j,s])=>j===k||s.has(C[j].v(x)))).sort((a,b)=>(c.k(a)>c.k(b))-(c.k(a)<c.k(b)));
  const vals=[...new Set(o.map(c.v))],cur=T.f[k]||new Set(vals),p=$("pop");p.dataset.k=k;p.dataset.tb=tb;
  p.innerHTML=`<button class="sec pb" data-o="asc">Trier du plus petit au plus grand (A → Z)</button><button class="sec pb" data-o="desc">Trier du plus grand au plus petit (Z → A)</button>
@@ -275,7 +293,7 @@ $("pop").onchange=e=>{const tb=$("pop").dataset.tb,k=$("pop").dataset.k,T=TB[tb]
  $("pall").checked=bx.every(b=>b.checked);redraw(tb)};
 $("pop").oninput=e=>{if(e.target.id!=="pq")return;const q=e.target.value.toLowerCase();
  document.querySelectorAll("#pl label").forEach(l=>l.classList.toggle("hide",!l.textContent.toLowerCase().includes(q)))};
-document.addEventListener("click",e=>{if(!e.target.closest("#pop,.hf"))$("pop").classList.add("hide")});
+document.addEventListener("click",e=>{if(!e.target.closest("#pop,.hf"))$("pop").classList.add("hide");if(!e.target.closest("#cpop,#colt,#coli"))$("cpop").classList.add("hide")});
 const isResp=r=>r==="responsable_batiments"||r==="responsable_exploitation";
 const dom=r=>({responsable_batiments:"batiments",agent_travaux:"batiments",responsable_exploitation:"exploitation",agent_exploitation:"exploitation"})[r];
 const catDom=x=>(cats.find(c=>c.id===x.categorie_id)||{}).domaine;
@@ -318,7 +336,7 @@ function drawT(){const c=cur,E=ed&&canF(),cn=canT();
  $("tbody").innerHTML=`${hdr(c)}${canF()?`<button class="ic" data-edit title="Modifier" aria-label="Modifier">✎</button>`:""}</div>
  <p class="big"><b>${c.ref}</b> – ${esc(c.titre)}</p><div class="desc">${esc(c.description||"Aucune description.")}</div>
  ${E?`<div class="ep">${baseF(c)}<label>Description</label><textarea data-f="description" rows="3">${esc(c.description||"")}</textarea><label>Priorité</label><select data-f="priorite">${prioO(c.priorite)}</select></div>`:""}
- <p class="meta">${esc(COLS.cat.v(c))} · demandé par ${esc(c.demandeur_nom||"—")} le ${fdate(c.created_at)} · Priorité ${PR[c.priorite]}</p>
+ <p class="meta">${esc(catLab(c))} · demandé par ${esc(c.demandeur_nom||"—")} le ${fdate(c.created_at)} · Priorité ${PR[c.priorite]}</p>
  <p><span class="tag s-${c.statut}">${ST[c.statut]}</span>${c.fin_prevue?` &nbsp;Fin d'intervention prévue : <b>${fdate(c.fin_prevue)}</b>`:""}</p>
  ${cn?`<div class="btns">${Object.entries(ST).filter(([k])=>k!==c.statut).map(([k,v])=>`<button class="sec" data-st="${k}">${v}</button>`).join("")}</div>`:""}
  <h3>Historique</h3><div id="tl"></div>
@@ -350,12 +368,12 @@ function renderIv(){const r=role(),ag=isAg(),edt=r!=="demandeur"&&!ag;
  const base=ints.filter(i=>ag?(i.agent_ids||[]).includes(me.id):peutEditer(i,r));TB.i.base=base;
  const l=sortFilt(base,"i"),cl=i=>["terminee","annulee"].includes(i.etat),act=l.filter(i=>!cl(i)),clo=l.filter(cl);head("i");
  $("iempty").classList.toggle("hide",act.length>0);$("iempty2").classList.toggle("hide",clo.length>0);$("ich").textContent=`Interventions closes – terminées, annulées (${clo.length})`;
- const row=i=>`<tr class="c ${i.etat==="terminee"?"res":i.etat==="annulee"?"arc":""}" data-i="${i.id}"><td class="nw">${i.ref}</td><td class="tt">${esc(i.titre)}</td><td class="lc">${esc(siteN(i.site_id))}</td><td class="lc">${esc(tribN(i.tribune_id))}</td><td class="lc">${esc(i.local||"—")}</td><td class="lc">${esc(COLS.cat.v(i))}</td><td class="nw">${fdate(i.echeance)}</td><td class="lc">${esc(attV(i))}</td><td class="nw"><span class="tag">${ET[i.etat]}</span></td></tr>`;
+ const row=i=>rowH("i",i,i.etat==="terminee"?"res":i.etat==="annulee"?"arc":"",`data-i="${i.id}"`);
  $("irows").innerHTML=act.map(row).join("");$("irows2").innerHTML=clo.map(row).join("")}
 $("tabt").onclick=()=>{tab="t";render()};$("tabi").onclick=()=>{tab="i";render()};
 $("newint").onclick=()=>{pendingTicket=null;openIv(null,null)};
 $("irows").onclick=e=>{const tr=e.target.closest("tr");if(tr){pendingTicket=null;openIv(ints.find(x=>x.id==tr.dataset.i))}};
-function openIv(i,t){const v=i?{...i}:{site_id:t?t.site_id:sites[0]&&sites[0].id,tribune_id:t?t.tribune_id:null,local:t?t.local:null,categorie_id:t?t.categorie_id:((isResp(role())&&cats.find(x=>x.domaine===dom(role())))||cats[0]||{}).id,corps_etat_id:t?t.corps_etat_id:null,
+function openIv(i,t){const v=i?{...i}:{site_id:t?t.site_id:((sites.find(x=>x.id===me.site_defaut_id)||sites[0])||{}).id,tribune_id:t?t.tribune_id:null,local:t?t.local:null,categorie_id:t?t.categorie_id:((isResp(role())&&cats.find(x=>x.domaine===dom(role())))||cats[0]||{}).id,corps_etat_id:t?t.corps_etat_id:null,
  titre:t?t.titre:"",consignes:t&&t.description||"",priorite:t?t.priorite:"normale",etat:"planifiee",agent_ids:[],echeance:null};
  if(!i&&!v.tribune_id)v.tribune_id=(trib.find(x=>x.site_id===v.site_id)||{}).id;if(!i&&!v.corps_etat_id)v.corps_etat_id=(corps.find(x=>x.categorie_id===v.categorie_id)||{}).id||null;
  curI=v;ed=false;imode=v.entreprise_id?"e":"a";devisMail=false;drawI();if(!$("dIv").open)$("dIv").showModal()}
@@ -370,7 +388,7 @@ function drawI(){const c=curI,saved=!!c.id,r=role(),ag=isAg(),canE=!ag&&r!=="dem
   ${mode==="a"?agents.filter(a=>!cd||dom(a.role)===cd).map(a=>`<label class="ck"><input type="checkbox" data-agent="${a.id}" data-n="${esc(((a.prenom||"")+" "+(a.nom||"")).trim())}"${(c.agent_ids||[]).includes(a.id)?" checked":""}> ${esc(a.prenom||"")} ${esc(a.nom||"")} <small>(${ROLES[a.role]})</small></label>`).join("")||`<span class="empty" style="padding:4px">Aucun agent actif dans ce domaine.</span>`
   :`<label>Interlocuteur (entreprises de la catégorie, celles du corps d'état en tête)</label><select data-f="entreprise_id"><option value="">— Choisir —</option>${entOpts(c)}</select>${dv()}
   <div class="row" style="flex-wrap:wrap">${SU.map(([k,l,t])=>suIn(k,l,t,c)).join("")}</div>`}</div>`:""}
- <p class="meta">${t?"Ticket "+esc(t.ref)+" · ":"Sans ticket · "}${esc(COLS.cat.v(c))} · Priorité ${PR[c.priorite]} · Fin prévue : <b>${fdate(c.echeance)}</b></p>
+ <p class="meta">${t?"Ticket "+esc(t.ref)+" · ":"Sans ticket · "}${esc(catLab(c))} · Priorité ${PR[c.priorite]} · Fin prévue : <b>${fdate(c.echeance)}</b></p>
  <p>${mode==="e"?`<b>${esc(ent?ent.entreprise:c.prestataire||"")}</b>${ent?`<br>${esc(ent.contact||"")} · ${esc(ent.email||"")} · ${esc(fmtTel(ent.mobile))}`:""}`:`Attribué à : ${esc(c.agents_noms||"à désigner")}`}</p>${mode==="e"&&saved&&canE&&!E?dv():""}
  ${saved&&mode==="e"?`<p class="meta">${SU.map(([k,l,t])=>suVw(k,l,t,c)).join(" · ")}</p>`:""}
  ${saved?`<p><span class="tag">${ET[c.etat]}</span></p>`:""}
@@ -406,7 +424,7 @@ async function createI(){const c=curI,o={};["site_id","tribune_id","local","cate
  await load();curI=ints.find(x=>x.id===data.id)||data;ed=false;drawI()}
 function pdfI(){const c=curI,{jsPDF}=window.jspdf,d=new jsPDF();let y=18;
  const T=(t,b,z)=>{d.setFont("helvetica",b?"bold":"normal");d.setFontSize(z||11);const L=d.splitTextToSize(String(t),180);d.text(L,15,y);y+=L.length*6+2};
- T("FICHE D'INTERVENTION "+c.ref,1,16);y+=2;T(c.titre,1,13);T(`Lieu : ${siteN(c.site_id)} / ${tribN(c.tribune_id)}${c.local?" / "+c.local:""}`);T(`Catégorie : ${COLS.cat.v(c)}`);
+ T("FICHE D'INTERVENTION "+c.ref,1,16);y+=2;T(c.titre,1,13);T(`Lieu : ${siteN(c.site_id)} / ${tribN(c.tribune_id)}${c.local?" / "+c.local:""}`);T(`Catégorie : ${catLab(c)}`);
  T(`Priorité : ${PR[c.priorite]}      Fin d'intervention prévue : ${c.echeance?fdate(c.echeance):"non précisée"}`);T(`Intervenants : ${c.agents_noms||"à définir"}`);
  y+=3;T("Consignes",1);T(c.consignes||"Aucune consigne particulière.");y+=6;T(`Fiche émise le ${fdate(new Date())} par ${nm()}`,0,9);d.save(`fiche-${c.ref}.pdf`)}
 function mailI(){const c=curI,e=c.entreprise_id?"e":"a",ent=ents.find(x=>x.id===c.entreprise_id),dv=e==="e"&&devisMail,ce=(corps.find(x=>x.id===c.corps_etat_id)||{}).nom;
@@ -451,7 +469,7 @@ async function renderSug(){const {data}=await sb.from("suggestions").select("*")
 $("sug_l").onclick=async e=>{const a=e.target.closest("[data-sv],[data-sd]");if(!a)return;
  const q=a.dataset.sd?(confirm("Supprimer cette suggestion ?")?sb.from("suggestions").delete().eq("id",a.dataset.sd):null):sb.from("suggestions").update({traitee:a.dataset.v==="true"}).eq("id",a.dataset.sv);
  if(q){await q;renderSug()}};
-$("rows2").onclick=$("rows").onclick;$("irows2").onclick=$("irows").onclick;
+$("irows2").onclick=$("irows").onclick;
 // ===== Fenêtres : fermeture au clic à côté =====
 document.querySelectorAll("dialog").forEach(d=>{if(d.id==="dPw")return;d.addEventListener("click",e=>{if(e.target!==d)return;const r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close()})});
 
