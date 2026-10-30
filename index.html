@@ -54,7 +54,7 @@ button.hb:hover,button.hf:hover{color:var(--accent)}button.hf.on{color:var(--acc
 button.pb{text-align:left;padding:6px 8px;font-size:13px}
 .hide{display:none!important}a.lnk{color:var(--accent);cursor:pointer;text-decoration:underline}
 </style></head><body>
-<header><h1>Stades 3M - Travaux, Maintenance & Exploitation <small id="vers">v2.8</small></h1><div id="hd" class="hide">
+<header><h1>Stades 3M - Travaux, Maintenance & Exploitation <small id="vers">v2.9</small></h1><div id="hd" class="hide">
  <span id="who"></span>
  
  <button id="adm" class="hide">Console admin</button><button id="sug" title="Proposer une idée ou une amélioration" aria-label="Proposer une idée ou une amélioration"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg></button><button id="hlp" title="Notice d'utilisation" aria-label="Notice d'utilisation">?</button><button id="out" title="Se déconnecter" aria-label="Se déconnecter"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button></div></header>
@@ -115,7 +115,7 @@ button.pb{text-align:left;padding:6px 8px;font-size:13px}
  <label for="sugt">Type</label><select id="sugt"><option>Idée</option><option>Amélioration</option><option>Problème rencontré</option></select>
  <label for="sugti">Titre (obligatoire)</label><input id="sugti"><label for="sugtx">Détail</label><textarea id="sugtx" rows="4"></textarea>
  <p class="msg" id="sugm"></p><div class="row"><button id="sugb">Envoyer la suggestion</button><button class="sec" data-close>Fermer</button></div></dialog>
-<footer id="ver" aria-hidden="true">Version 2.8 – 29/10/2026</footer>
+<footer id="ver" aria-hidden="true">Version 2.9 – 30/10/2026</footer>
 <div id="pop" class="pop hide"></div><div id="cpop" class="pop hide"></div>
 <dialog id="dPw"><h2 style="margin-top:0">Choisissez votre mot de passe</h2><label for="np1">Mot de passe (8 caractères minimum)</label><input id="np1" type="password" autocomplete="new-password"><p class="msg" id="pmsg"></p><button id="pwok">Enregistrer le mot de passe</button></dialog>
 <dialog id="dDet"><div id="tbody"></div></dialog>
@@ -347,7 +347,7 @@ const baseF=(c,mine)=>`<div class="row"><div><label>Site</label><select data-f="
 <label>Local</label><input data-f="local" value="${esc(c.local||"")}">
 <div class="row"><div><label>Catégorie</label><select data-f="categorie_id">${catsO(c.categorie_id,mine)}</select></div><div><label>Corps d'état</label><select data-f="corps_etat_id">${corpsO(c.categorie_id,c.corps_etat_id)}</select></div></div>
 <label>Titre</label><input data-f="titre" value="${esc(c.titre)}">`;
-const chargeO=c=>{const d=catDom(c);return O([["","— Personne —"],...agents.filter(a=>a.role==="admin"||(isResp(a.role)&&(!d||dom(a.role)===d))).map(a=>[a.id,`${((a.prenom||"")+" "+(a.nom||"")).trim()} (${ROLES[a.role]})`])],c.en_charge_id)};
+const chargeO=c=>{const d=catDom(c);return O([...agents.filter(a=>a.role==="admin"||(isResp(a.role)&&(!d||dom(a.role)===d))).map(a=>[a.id,`${((a.prenom||"")+" "+(a.nom||"")).trim()} (${ROLES[a.role]})`])],c.en_charge_id)};
 const hdr=c=>`<div class="dh"><div><h2>${esc(siteN(c.site_id))}</h2><div class="sub">${esc(tribN(c.tribune_id))}${c.local?" · "+esc(c.local):""}</div></div>`;
 // ===== TICKET =====
 const canT=()=>peutEditer(cur,role()),canF=()=>canT()||(cur.demandeur_id===me.id&&cur.statut==="nouvelle"&&["demandeur","responsable_batiments","responsable_exploitation"].includes(role()));
